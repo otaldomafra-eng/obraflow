@@ -1,3 +1,4 @@
+import { PrismaPg } from "@prisma/adapter-pg";
 import {
   ClientKind,
   DocumentVisibility,
@@ -7,31 +8,14 @@ import {
   ServiceStatus,
   ServiceType,
 } from "@prisma/client";
-import { createRequire } from "node:module";
 
-const require = createRequire(import.meta.url);
+const connectionString =
+  process.env.DATABASE_URL ??
+  "postgresql://obraflow:obraflow@localhost:5432/obraflow";
 
-function createPrismaClient() {
-  try {
-    const { PrismaPg } = require("@prisma/adapter-pg") as {
-      PrismaPg: new (config: { connectionString: string }) => unknown;
-    };
-
-    return new PrismaClient({
-      adapter: new PrismaPg({
-        connectionString:
-          process.env.DATABASE_URL ??
-          "postgresql://obraflow:obraflow@localhost:5432/obraflow",
-      }),
-    } as ConstructorParameters<typeof PrismaClient>[0]);
-  } catch {
-    throw new Error(
-      "Prisma 7 requires @prisma/adapter-pg to run the seed against PostgreSQL.",
-    );
-  }
-}
-
-const prisma = createPrismaClient();
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString }),
+});
 
 async function main() {
   const tenant = await prisma.tenant.upsert({
