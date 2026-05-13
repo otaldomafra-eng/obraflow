@@ -47,6 +47,27 @@ pnpm db:seed
 
 ## End-to-End Tests
 
+### Prerequisites
+
+E2E tests require a running PostgreSQL instance and a seeded database.
+
+1. Start PostgreSQL on `localhost:5432`
+
+2. Create the database and user:
+   ```bash
+   createdb obraflow
+   createuser obraflow --password
+   # use "obraflow" as password
+   ```
+
+3. Apply migrations and seed:
+   ```bash
+   pnpm db:migrate
+   pnpm db:seed
+   ```
+
+### Run
+
 Install Playwright browsers (one-time):
 
 ```bash
@@ -59,4 +80,6 @@ Then run:
 pnpm test:e2e
 ```
 
-> **Note:** E2E tests require a running dev server (`pnpm dev`) and a seeded database. They are excluded from `pnpm test` — only unit and integration tests run there.
+The `webServer` in `playwright.config.ts` automatically starts `pnpm dev`, so the dev server does not need to be started beforehand.
+
+> **Note:** E2E tests are excluded from `pnpm test` — only unit and integration tests run there.

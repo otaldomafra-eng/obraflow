@@ -23,7 +23,11 @@ export const authOptions: NextAuthOptions = {
 
         const demoPassword = process.env.DEMO_LOGIN_PASSWORD;
 
-        if (demoPassword && credentials.password !== demoPassword) {
+        if (!demoPassword) {
+          return null;
+        }
+
+        if (credentials.password !== demoPassword) {
           return null;
         }
 
