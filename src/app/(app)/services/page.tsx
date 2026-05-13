@@ -8,14 +8,22 @@ import { listProperties } from "@/features/properties/actions";
 import { requireTenantId } from "@/server/auth/tenant";
 
 export default async function ServicesPage() {
-  const tenantId = await requireTenantId();
-  const [servicesData, clientsData, propertiesData] = await Promise.all([
-    listServices(tenantId),
-    listClients(tenantId, { pageSize: 100 }),
-    listProperties(tenantId, { pageSize: 100 }),
-  ]);
+   const tenantId = await requireTenantId();
+   const [servicesData, clientsData, propertiesData] = await Promise.all([
+     listServices(tenantId),
+     listClients(tenantId, { pageSize: 100 }),
+     listProperties(tenantId, { pageSize: 100 }),
+   ]);
 
-  async function handleCreate(formData: FormData) {
+   const propertiesByClient: Record<string, { id: string; name: string }[]> = {};
+   for (const p of propertiesData.items) {
+     if (!propertiesByClient[p.client.id]) {
+       propertiesByClient[p.client.id] = [];
+     }
+     propertiesByClient[p.client.id].push({ id: p.id, name: p.name });
+   }
+
+   async function handleCreate(formData: FormData) {
     "use server";
 
     const clientId = formData.get("clientId") as string;
@@ -50,11 +58,11 @@ export default async function ServicesPage() {
         <div>
           <div className="rounded-xl border bg-white p-6">
             <h2 className="mb-4 text-base font-semibold">Novo Serviço</h2>
-            <ServiceForm
-              action={handleCreate}
-              clients={clientsData.items}
-              properties={propertiesData.items}
-            />
+<ServiceForm
+               action={handleCreate}
+               clients={clientsData.items}
+               propertiesByClient={propertiesByClient}
+             />
           </div>
         </div>
       </div>

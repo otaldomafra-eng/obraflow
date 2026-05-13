@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
+
 interface ServiceFormProps {
   action: (formData: FormData) => Promise<void>;
   clients: { id: string; name: string }[];
-  properties?: { id: string; name: string; clientId: string }[];
+  propertiesByClient: Record<string, { id: string; name: string }[]>;
 }
 
 const serviceTypes = [
@@ -15,7 +17,17 @@ const serviceTypes = [
   { value: "PROJECT_APPROVAL_WORK", label: "Aprovação de Projeto" },
 ];
 
-export function ServiceForm({ action, clients, properties = [] }: ServiceFormProps) {
+export function ServiceForm({
+  action,
+  clients,
+  propertiesByClient,
+}: ServiceFormProps) {
+  const [selectedClientId, setSelectedClientId] = useState("");
+
+  const properties = selectedClientId
+    ? propertiesByClient[selectedClientId] ?? []
+    : [];
+
   return (
     <form action={action} className="space-y-4">
       <div>
@@ -26,6 +38,7 @@ export function ServiceForm({ action, clients, properties = [] }: ServiceFormPro
           id="clientId"
           name="clientId"
           required
+          onChange={(e) => setSelectedClientId(e.target.value)}
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
         >
           <option value="">Selecione um cliente</option>
@@ -44,7 +57,8 @@ export function ServiceForm({ action, clients, properties = [] }: ServiceFormPro
         <select
           id="propertyId"
           name="propertyId"
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          disabled={properties.length === 0}
+          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 disabled:opacity-50"
         >
           <option value="">Nenhum (opcional)</option>
           {properties.map((property) => (

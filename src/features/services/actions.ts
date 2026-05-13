@@ -26,7 +26,7 @@ const serviceStatuses = [
   "CANCELED",
 ] as const;
 
-const createServiceSchema = z.object({
+export const createServiceSchema = z.object({
   clientId: z.string().min(1),
   propertyId: z.string().optional(),
   title: z.string().min(1),
@@ -37,11 +37,11 @@ const createServiceSchema = z.object({
   dueDate: z.string().optional().transform((v) => (v ? new Date(v) : null)),
 });
 
-const updateServiceSchema = createServiceSchema.partial().extend({
+export const updateServiceSchema = createServiceSchema.partial().extend({
   status: z.enum(serviceStatuses).optional(),
 });
 
-const listServicesSchema = z.object({
+export const listServicesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().optional(),
@@ -54,11 +54,54 @@ export type CreateServiceInput = z.input<typeof createServiceSchema>;
 export type UpdateServiceInput = z.input<typeof updateServiceSchema>;
 export type ListServicesInput = z.input<typeof listServicesSchema>;
 
+async function assertClientBelongsToTenant(
+  tenantId: string,
+  clientId: string,
+): Promise<void> {
+  const client = await prisma.client.findUnique({
+    where: { tenantId_id: { tenantId, id: clientId } },
+    select: { id: true },
+  });
+
+  if (!client) {
+    throw new Error(
+      `Client ${clientId} does not belong to tenant ${tenantId}`,
+    );
+  }
+}
+
+async function assertPropertyBelongsToTenantAndClient(
+  tenantId: string,
+  clientId: string,
+  propertyId: string,
+): Promise<void> {
+  const property = await prisma.property.findUnique({
+    where: { tenantId_clientId_id: { tenantId, clientId, id: propertyId } },
+    select: { id: true },
+  });
+
+  if (!property) {
+    throw new Error(
+      `Property ${propertyId} does not belong to client ${clientId} in tenant ${tenantId}`,
+    );
+  }
+}
+
 export async function createService(
   tenantId: string,
   input: CreateServiceInput,
 ) {
   const data = createServiceSchema.parse(input);
+
+  await assertClientBelongsToTenant(tenantId, data.clientId);
+
+  if (data.propertyId) {
+    await assertPropertyBelongsToTenantAndClient(
+      tenantId,
+      data.clientId,
+      data.propertyId,
+    );
+  }
 
   return prisma.service.create({
     data: {
@@ -82,15 +125,44 @@ export async function updateService(
 ) {
   const data = updateServiceSchema.parse(input);
 
+  if (data.clientId !== undefined) {
+    await assertClientBelongsToTenant(tenantId, data.clientId);
+  }
+
+  if (data.propertyId !== undefined && data.propertyId !== null) {
+    const clientId =
+      data.clientId ??
+      (
+        await prisma.service.findUnique({
+          where: { tenantId_id: { tenantId, id: serviceId } },
+          select: { clientId: true },
+        })
+      )?.clientId;
+
+    if (!clientId) {
+      throw new Error("Cannot resolve client for property validation");
+    }
+
+    await assertPropertyBelongsToTenantAndClient(
+      tenantId,
+      clientId,
+      data.propertyId,
+    );
+  }
+
   return prisma.service.update({
     where: { tenantId_id: { tenantId, id: serviceId } },
     data: {
       ...(data.clientId !== undefined && { clientId: data.clientId }),
-      ...(data.propertyId !== undefined && { propertyId: data.propertyId ?? null }),
+      ...(data.propertyId !== undefined && {
+        propertyId: data.propertyId ?? null,
+      }),
       ...(data.title !== undefined && { title: data.title }),
       ...(data.type !== undefined && { type: data.type }),
       ...(data.status !== undefined && { status: data.status }),
-      ...(data.description !== undefined && { description: data.description ?? null }),
+      ...(data.description !== undefined && {
+        description: data.description ?? null,
+      }),
       ...(data.startDate !== undefined && { startDate: data.startDate }),
       ...(data.dueDate !== undefined && { dueDate: data.dueDate }),
     },

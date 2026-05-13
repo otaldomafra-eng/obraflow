@@ -63,10 +63,10 @@ export default async function ServiceDetailPage({
             <div>
               <dt className="text-sm font-medium text-zinc-500">Cliente</dt>
               <dd className="text-sm text-zinc-900">
-                <Link
-                  href={`/clients/${service.client.id}`}
-                  className="hover:underline"
-                >
+<Link
+                     href={`/properties/${service.property?.id}`}
+                     className="hover:underline"
+                   >
                   {service.client.name}
                 </Link>
               </dd>
