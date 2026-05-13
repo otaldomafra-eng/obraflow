@@ -25,12 +25,17 @@ describe.skipIf(process.env.RUN_DB_TESTS !== "1")(
 
       expect(tenant?.name).toBe("Demo ObraFlow");
       expect(tenant?.clients[0]).toMatchObject({
+        externalKey: "demo-client-joao-silva",
         name: "Joao Silva",
         properties: expect.arrayContaining([
-          expect.objectContaining({ name: "Casa no Plano Diretor Sul" }),
+          expect.objectContaining({
+            externalKey: "demo-property-casa-pds",
+            name: "Casa no Plano Diretor Sul",
+          }),
         ]),
         services: expect.arrayContaining([
           expect.objectContaining({
+            externalKey: "demo-service-residence-project",
             title: "Projeto + aprovacao + execucao de residencia",
           }),
         ]),

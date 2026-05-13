@@ -53,18 +53,21 @@ async function main() {
 
   const client = await prisma.client.upsert({
     where: {
-      tenantId_email: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        email: "joao.silva@obraflow.local",
+        externalKey: "demo-client-joao-silva",
       },
     },
     update: {
+      externalKey: "demo-client-joao-silva",
       name: "Joao Silva",
       kind: ClientKind.PERSON,
+      email: "joao.silva@obraflow.local",
       phone: "+55 63 99999-0000",
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-client-joao-silva",
       name: "Joao Silva",
       kind: ClientKind.PERSON,
       email: "joao.silva@obraflow.local",
@@ -74,19 +77,22 @@ async function main() {
 
   const property = await prisma.property.upsert({
     where: {
-      tenantId_clientId_name: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        clientId: client.id,
-        name: "Casa no Plano Diretor Sul",
+        externalKey: "demo-property-casa-pds",
       },
     },
     update: {
+      externalKey: "demo-property-casa-pds",
+      clientId: client.id,
+      name: "Casa no Plano Diretor Sul",
       address: "Plano Diretor Sul",
       city: "Palmas",
       state: "TO",
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-property-casa-pds",
       clientId: client.id,
       name: "Casa no Plano Diretor Sul",
       address: "Plano Diretor Sul",
@@ -97,19 +103,22 @@ async function main() {
 
   const service = await prisma.service.upsert({
     where: {
-      tenantId_clientId_title: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        clientId: client.id,
-        title: "Projeto + aprovacao + execucao de residencia",
+        externalKey: "demo-service-residence-project",
       },
     },
     update: {
+      externalKey: "demo-service-residence-project",
+      clientId: client.id,
       propertyId: property.id,
+      title: "Projeto + aprovacao + execucao de residencia",
       type: ServiceType.PROJECT_APPROVAL_WORK,
       status: ServiceStatus.CONTRACTED,
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-service-residence-project",
       clientId: client.id,
       propertyId: property.id,
       title: "Projeto + aprovacao + execucao de residencia",
@@ -122,18 +131,21 @@ async function main() {
 
   await prisma.proposal.upsert({
     where: {
-      tenantId_serviceId_title: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        serviceId: service.id,
-        title: "Proposta residencia Plano Diretor Sul",
+        externalKey: "demo-proposal-residence",
       },
     },
     update: {
+      externalKey: "demo-proposal-residence",
+      serviceId: service.id,
+      title: "Proposta residencia Plano Diretor Sul",
       status: "ACCEPTED",
       totalAmount: new Prisma.Decimal("18500.00"),
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-proposal-residence",
       serviceId: service.id,
       title: "Proposta residencia Plano Diretor Sul",
       status: "ACCEPTED",
@@ -145,18 +157,21 @@ async function main() {
 
   const technicalPhase = await prisma.projectPhase.upsert({
     where: {
-      tenantId_serviceId_name: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        serviceId: service.id,
-        name: "Projetos tecnicos",
+        externalKey: "demo-phase-technical-projects",
       },
     },
     update: {
+      externalKey: "demo-phase-technical-projects",
+      serviceId: service.id,
+      name: "Projetos tecnicos",
       order: 1,
       status: ServiceStatus.PRODUCTION,
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-phase-technical-projects",
       serviceId: service.id,
       name: "Projetos tecnicos",
       order: 1,
@@ -166,19 +181,22 @@ async function main() {
 
   const architectureTask = await prisma.serviceTask.upsert({
     where: {
-      tenantId_serviceId_title: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        serviceId: service.id,
-        title: "Elaborar projeto arquitetonico executivo",
+        externalKey: "demo-task-architecture",
       },
     },
     update: {
+      externalKey: "demo-task-architecture",
+      serviceId: service.id,
+      title: "Elaborar projeto arquitetonico executivo",
       status: ServiceStatus.PRODUCTION,
       assigneeId: admin.id,
       phaseId: technicalPhase.id,
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-task-architecture",
       serviceId: service.id,
       assigneeId: admin.id,
       phaseId: technicalPhase.id,
@@ -189,19 +207,22 @@ async function main() {
 
   await prisma.serviceTask.upsert({
     where: {
-      tenantId_serviceId_title: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        serviceId: service.id,
-        title: "Compatibilizar projeto estrutural",
+        externalKey: "demo-task-structure",
       },
     },
     update: {
+      externalKey: "demo-task-structure",
+      serviceId: service.id,
+      title: "Compatibilizar projeto estrutural",
       status: ServiceStatus.PLANNING,
       assigneeId: admin.id,
       phaseId: technicalPhase.id,
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-task-structure",
       serviceId: service.id,
       assigneeId: admin.id,
       phaseId: technicalPhase.id,
@@ -212,18 +233,21 @@ async function main() {
 
   await prisma.approvalProcess.upsert({
     where: {
-      tenantId_serviceId_authority: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        serviceId: service.id,
-        authority: "Prefeitura de Palmas",
+        externalKey: "demo-approval-prefeitura",
       },
     },
     update: {
+      externalKey: "demo-approval-prefeitura",
+      serviceId: service.id,
+      authority: "Prefeitura de Palmas",
       status: "IN_REVIEW",
       protocol: "PMP-2026-0001",
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-approval-prefeitura",
       serviceId: service.id,
       authority: "Prefeitura de Palmas",
       protocol: "PMP-2026-0001",
@@ -233,19 +257,22 @@ async function main() {
 
   await prisma.workLog.upsert({
     where: {
-      tenantId_serviceId_performedAt_summary: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        serviceId: service.id,
-        performedAt: new Date("2026-05-06T12:00:00.000Z"),
-        summary: "Levantamento inicial em campo",
+        externalKey: "demo-worklog-initial-survey",
       },
     },
     update: {
+      externalKey: "demo-worklog-initial-survey",
+      serviceId: service.id,
       taskId: architectureTask.id,
+      performedAt: new Date("2026-05-06T12:00:00.000Z"),
+      summary: "Levantamento inicial em campo",
       hours: new Prisma.Decimal("3.50"),
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-worklog-initial-survey",
       serviceId: service.id,
       taskId: architectureTask.id,
       performedAt: new Date("2026-05-06T12:00:00.000Z"),
@@ -257,19 +284,22 @@ async function main() {
 
   await prisma.document.upsert({
     where: {
-      tenantId_serviceId_title: {
+      tenantId_externalKey: {
         tenantId: tenant.id,
-        serviceId: service.id,
-        title: "Proposta aprovada",
+        externalKey: "demo-document-approved-proposal",
       },
     },
     update: {
+      externalKey: "demo-document-approved-proposal",
+      serviceId: service.id,
+      title: "Proposta aprovada",
       visibility: DocumentVisibility.CLIENT_VISIBLE,
       url: "https://example.com/obraflow/proposta-aprovada.pdf",
       mimeType: "application/pdf",
     },
     create: {
       tenantId: tenant.id,
+      externalKey: "demo-document-approved-proposal",
       serviceId: service.id,
       title: "Proposta aprovada",
       url: "https://example.com/obraflow/proposta-aprovada.pdf",

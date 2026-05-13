@@ -1,4 +1,4 @@
-﻿-- CreateSchema
+-- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
 -- CreateEnum
@@ -90,6 +90,7 @@ CREATE TABLE "Membership" (
 CREATE TABLE "Client" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "name" TEXT NOT NULL,
     "kind" "ClientKind" NOT NULL DEFAULT 'PERSON',
     "document" TEXT,
@@ -106,6 +107,7 @@ CREATE TABLE "Client" (
 CREATE TABLE "Property" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "clientId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "address" TEXT,
@@ -123,6 +125,7 @@ CREATE TABLE "Property" (
 CREATE TABLE "Service" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "clientId" TEXT NOT NULL,
     "propertyId" TEXT,
     "title" TEXT NOT NULL,
@@ -141,6 +144,7 @@ CREATE TABLE "Service" (
 CREATE TABLE "Lead" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "clientId" TEXT,
     "serviceId" TEXT,
     "source" TEXT,
@@ -157,6 +161,7 @@ CREATE TABLE "Lead" (
 CREATE TABLE "Opportunity" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "clientId" TEXT NOT NULL,
     "serviceId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
@@ -172,6 +177,7 @@ CREATE TABLE "Opportunity" (
 CREATE TABLE "Proposal" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'DRAFT',
@@ -188,6 +194,7 @@ CREATE TABLE "Proposal" (
 CREATE TABLE "Contract" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "proposalId" TEXT,
     "number" TEXT NOT NULL,
@@ -203,6 +210,7 @@ CREATE TABLE "Contract" (
 CREATE TABLE "ProjectPhase" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "order" INTEGER NOT NULL DEFAULT 0,
@@ -219,6 +227,7 @@ CREATE TABLE "ProjectPhase" (
 CREATE TABLE "ServiceTask" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "phaseId" TEXT,
     "assigneeId" TEXT,
@@ -237,6 +246,7 @@ CREATE TABLE "ServiceTask" (
 CREATE TABLE "ApprovalProcess" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "authority" TEXT NOT NULL,
     "protocol" TEXT,
@@ -252,6 +262,7 @@ CREATE TABLE "ApprovalProcess" (
 CREATE TABLE "WorkLog" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "taskId" TEXT,
     "summary" TEXT NOT NULL,
@@ -268,6 +279,7 @@ CREATE TABLE "WorkLog" (
 CREATE TABLE "WorkMeasurement" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "taskId" TEXT,
     "description" TEXT NOT NULL,
@@ -284,6 +296,7 @@ CREATE TABLE "WorkMeasurement" (
 CREATE TABLE "Document" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "url" TEXT NOT NULL,
@@ -299,6 +312,7 @@ CREATE TABLE "Document" (
 CREATE TABLE "Message" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "clientId" TEXT,
     "userId" TEXT,
@@ -313,6 +327,7 @@ CREATE TABLE "Message" (
 CREATE TABLE "TimelineEvent" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "title" TEXT NOT NULL,
@@ -327,6 +342,7 @@ CREATE TABLE "TimelineEvent" (
 CREATE TABLE "AiInteraction" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,
+    "externalKey" TEXT,
     "serviceId" TEXT NOT NULL,
     "userId" TEXT,
     "model" TEXT NOT NULL,
@@ -371,133 +387,199 @@ CREATE UNIQUE INDEX "Membership_tenantId_userId_key" ON "Membership"("tenantId",
 CREATE INDEX "Client_tenantId_idx" ON "Client"("tenantId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Client_tenantId_email_key" ON "Client"("tenantId", "email");
+CREATE UNIQUE INDEX "Client_tenantId_id_key" ON "Client"("tenantId", "id");
 
 -- CreateIndex
-CREATE INDEX "Property_clientId_idx" ON "Property"("clientId");
+CREATE UNIQUE INDEX "Client_tenantId_externalKey_key" ON "Client"("tenantId", "externalKey");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Property_tenantId_clientId_name_key" ON "Property"("tenantId", "clientId", "name");
+CREATE INDEX "Property_tenantId_clientId_idx" ON "Property"("tenantId", "clientId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Property_tenantId_id_key" ON "Property"("tenantId", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Property_tenantId_clientId_id_key" ON "Property"("tenantId", "clientId", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Property_tenantId_externalKey_key" ON "Property"("tenantId", "externalKey");
 
 -- CreateIndex
 CREATE INDEX "Service_tenantId_idx" ON "Service"("tenantId");
 
 -- CreateIndex
-CREATE INDEX "Service_clientId_idx" ON "Service"("clientId");
+CREATE INDEX "Service_tenantId_clientId_idx" ON "Service"("tenantId", "clientId");
 
 -- CreateIndex
-CREATE INDEX "Service_propertyId_idx" ON "Service"("propertyId");
+CREATE INDEX "Service_tenantId_clientId_propertyId_idx" ON "Service"("tenantId", "clientId", "propertyId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Service_tenantId_clientId_title_key" ON "Service"("tenantId", "clientId", "title");
+CREATE UNIQUE INDEX "Service_tenantId_id_key" ON "Service"("tenantId", "id");
 
 -- CreateIndex
-CREATE INDEX "Lead_clientId_idx" ON "Lead"("clientId");
+CREATE UNIQUE INDEX "Service_tenantId_clientId_id_key" ON "Service"("tenantId", "clientId", "id");
 
 -- CreateIndex
-CREATE INDEX "Lead_serviceId_idx" ON "Lead"("serviceId");
+CREATE UNIQUE INDEX "Service_tenantId_externalKey_key" ON "Service"("tenantId", "externalKey");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Lead_tenantId_title_key" ON "Lead"("tenantId", "title");
+CREATE INDEX "Lead_tenantId_clientId_idx" ON "Lead"("tenantId", "clientId");
 
 -- CreateIndex
-CREATE INDEX "Opportunity_clientId_idx" ON "Opportunity"("clientId");
+CREATE INDEX "Lead_tenantId_serviceId_idx" ON "Lead"("tenantId", "serviceId");
 
 -- CreateIndex
-CREATE INDEX "Opportunity_serviceId_idx" ON "Opportunity"("serviceId");
+CREATE UNIQUE INDEX "Lead_tenantId_id_key" ON "Lead"("tenantId", "id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Opportunity_tenantId_serviceId_title_key" ON "Opportunity"("tenantId", "serviceId", "title");
+CREATE UNIQUE INDEX "Lead_tenantId_externalKey_key" ON "Lead"("tenantId", "externalKey");
 
 -- CreateIndex
-CREATE INDEX "Proposal_serviceId_idx" ON "Proposal"("serviceId");
+CREATE INDEX "Opportunity_tenantId_clientId_idx" ON "Opportunity"("tenantId", "clientId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Proposal_tenantId_serviceId_title_key" ON "Proposal"("tenantId", "serviceId", "title");
+CREATE INDEX "Opportunity_tenantId_clientId_serviceId_idx" ON "Opportunity"("tenantId", "clientId", "serviceId");
 
 -- CreateIndex
-CREATE INDEX "Contract_serviceId_idx" ON "Contract"("serviceId");
+CREATE UNIQUE INDEX "Opportunity_tenantId_id_key" ON "Opportunity"("tenantId", "id");
 
 -- CreateIndex
-CREATE INDEX "Contract_proposalId_idx" ON "Contract"("proposalId");
+CREATE UNIQUE INDEX "Opportunity_tenantId_externalKey_key" ON "Opportunity"("tenantId", "externalKey");
+
+-- CreateIndex
+CREATE INDEX "Proposal_tenantId_serviceId_idx" ON "Proposal"("tenantId", "serviceId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Proposal_tenantId_id_key" ON "Proposal"("tenantId", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Proposal_tenantId_serviceId_id_key" ON "Proposal"("tenantId", "serviceId", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Proposal_tenantId_externalKey_key" ON "Proposal"("tenantId", "externalKey");
+
+-- CreateIndex
+CREATE INDEX "Contract_tenantId_serviceId_idx" ON "Contract"("tenantId", "serviceId");
+
+-- CreateIndex
+CREATE INDEX "Contract_tenantId_serviceId_proposalId_idx" ON "Contract"("tenantId", "serviceId", "proposalId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Contract_tenantId_id_key" ON "Contract"("tenantId", "id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Contract_tenantId_number_key" ON "Contract"("tenantId", "number");
 
 -- CreateIndex
-CREATE INDEX "ProjectPhase_serviceId_idx" ON "ProjectPhase"("serviceId");
+CREATE UNIQUE INDEX "Contract_tenantId_externalKey_key" ON "Contract"("tenantId", "externalKey");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProjectPhase_tenantId_serviceId_name_key" ON "ProjectPhase"("tenantId", "serviceId", "name");
+CREATE INDEX "ProjectPhase_tenantId_serviceId_idx" ON "ProjectPhase"("tenantId", "serviceId");
 
 -- CreateIndex
-CREATE INDEX "ServiceTask_serviceId_idx" ON "ServiceTask"("serviceId");
+CREATE UNIQUE INDEX "ProjectPhase_tenantId_id_key" ON "ProjectPhase"("tenantId", "id");
 
 -- CreateIndex
-CREATE INDEX "ServiceTask_phaseId_idx" ON "ServiceTask"("phaseId");
+CREATE UNIQUE INDEX "ProjectPhase_tenantId_serviceId_id_key" ON "ProjectPhase"("tenantId", "serviceId", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProjectPhase_tenantId_externalKey_key" ON "ProjectPhase"("tenantId", "externalKey");
+
+-- CreateIndex
+CREATE INDEX "ServiceTask_tenantId_serviceId_idx" ON "ServiceTask"("tenantId", "serviceId");
+
+-- CreateIndex
+CREATE INDEX "ServiceTask_tenantId_serviceId_phaseId_idx" ON "ServiceTask"("tenantId", "serviceId", "phaseId");
 
 -- CreateIndex
 CREATE INDEX "ServiceTask_assigneeId_idx" ON "ServiceTask"("assigneeId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ServiceTask_tenantId_serviceId_title_key" ON "ServiceTask"("tenantId", "serviceId", "title");
+CREATE UNIQUE INDEX "ServiceTask_tenantId_id_key" ON "ServiceTask"("tenantId", "id");
 
 -- CreateIndex
-CREATE INDEX "ApprovalProcess_serviceId_idx" ON "ApprovalProcess"("serviceId");
+CREATE UNIQUE INDEX "ServiceTask_tenantId_serviceId_id_key" ON "ServiceTask"("tenantId", "serviceId", "id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ApprovalProcess_tenantId_serviceId_authority_key" ON "ApprovalProcess"("tenantId", "serviceId", "authority");
+CREATE UNIQUE INDEX "ServiceTask_tenantId_externalKey_key" ON "ServiceTask"("tenantId", "externalKey");
 
 -- CreateIndex
-CREATE INDEX "WorkLog_serviceId_idx" ON "WorkLog"("serviceId");
+CREATE INDEX "ApprovalProcess_tenantId_serviceId_idx" ON "ApprovalProcess"("tenantId", "serviceId");
 
 -- CreateIndex
-CREATE INDEX "WorkLog_taskId_idx" ON "WorkLog"("taskId");
+CREATE UNIQUE INDEX "ApprovalProcess_tenantId_id_key" ON "ApprovalProcess"("tenantId", "id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "WorkLog_tenantId_serviceId_performedAt_summary_key" ON "WorkLog"("tenantId", "serviceId", "performedAt", "summary");
+CREATE UNIQUE INDEX "ApprovalProcess_tenantId_externalKey_key" ON "ApprovalProcess"("tenantId", "externalKey");
 
 -- CreateIndex
-CREATE INDEX "WorkMeasurement_serviceId_idx" ON "WorkMeasurement"("serviceId");
+CREATE INDEX "WorkLog_tenantId_serviceId_idx" ON "WorkLog"("tenantId", "serviceId");
 
 -- CreateIndex
-CREATE INDEX "WorkMeasurement_taskId_idx" ON "WorkMeasurement"("taskId");
+CREATE INDEX "WorkLog_tenantId_serviceId_taskId_idx" ON "WorkLog"("tenantId", "serviceId", "taskId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "WorkMeasurement_tenantId_serviceId_description_measuredAt_key" ON "WorkMeasurement"("tenantId", "serviceId", "description", "measuredAt");
+CREATE UNIQUE INDEX "WorkLog_tenantId_id_key" ON "WorkLog"("tenantId", "id");
 
 -- CreateIndex
-CREATE INDEX "Document_serviceId_idx" ON "Document"("serviceId");
+CREATE UNIQUE INDEX "WorkLog_tenantId_externalKey_key" ON "WorkLog"("tenantId", "externalKey");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Document_tenantId_serviceId_title_key" ON "Document"("tenantId", "serviceId", "title");
+CREATE INDEX "WorkMeasurement_tenantId_serviceId_idx" ON "WorkMeasurement"("tenantId", "serviceId");
 
 -- CreateIndex
-CREATE INDEX "Message_tenantId_idx" ON "Message"("tenantId");
+CREATE INDEX "WorkMeasurement_tenantId_serviceId_taskId_idx" ON "WorkMeasurement"("tenantId", "serviceId", "taskId");
 
 -- CreateIndex
-CREATE INDEX "Message_serviceId_idx" ON "Message"("serviceId");
+CREATE UNIQUE INDEX "WorkMeasurement_tenantId_id_key" ON "WorkMeasurement"("tenantId", "id");
 
 -- CreateIndex
-CREATE INDEX "Message_clientId_idx" ON "Message"("clientId");
+CREATE UNIQUE INDEX "WorkMeasurement_tenantId_externalKey_key" ON "WorkMeasurement"("tenantId", "externalKey");
+
+-- CreateIndex
+CREATE INDEX "Document_tenantId_serviceId_idx" ON "Document"("tenantId", "serviceId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Document_tenantId_id_key" ON "Document"("tenantId", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Document_tenantId_externalKey_key" ON "Document"("tenantId", "externalKey");
+
+-- CreateIndex
+CREATE INDEX "Message_tenantId_serviceId_idx" ON "Message"("tenantId", "serviceId");
+
+-- CreateIndex
+CREATE INDEX "Message_tenantId_clientId_idx" ON "Message"("tenantId", "clientId");
 
 -- CreateIndex
 CREATE INDEX "Message_userId_idx" ON "Message"("userId");
 
 -- CreateIndex
-CREATE INDEX "TimelineEvent_tenantId_idx" ON "TimelineEvent"("tenantId");
+CREATE UNIQUE INDEX "Message_tenantId_id_key" ON "Message"("tenantId", "id");
 
 -- CreateIndex
-CREATE INDEX "TimelineEvent_serviceId_idx" ON "TimelineEvent"("serviceId");
+CREATE UNIQUE INDEX "Message_tenantId_externalKey_key" ON "Message"("tenantId", "externalKey");
 
 -- CreateIndex
-CREATE INDEX "AiInteraction_tenantId_idx" ON "AiInteraction"("tenantId");
+CREATE INDEX "TimelineEvent_tenantId_serviceId_idx" ON "TimelineEvent"("tenantId", "serviceId");
 
 -- CreateIndex
-CREATE INDEX "AiInteraction_serviceId_idx" ON "AiInteraction"("serviceId");
+CREATE UNIQUE INDEX "TimelineEvent_tenantId_id_key" ON "TimelineEvent"("tenantId", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TimelineEvent_tenantId_externalKey_key" ON "TimelineEvent"("tenantId", "externalKey");
+
+-- CreateIndex
+CREATE INDEX "AiInteraction_tenantId_serviceId_idx" ON "AiInteraction"("tenantId", "serviceId");
 
 -- CreateIndex
 CREATE INDEX "AiInteraction_userId_idx" ON "AiInteraction"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AiInteraction_tenantId_id_key" ON "AiInteraction"("tenantId", "id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AiInteraction_tenantId_externalKey_key" ON "AiInteraction"("tenantId", "externalKey");
 
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -512,128 +594,128 @@ ALTER TABLE "Membership" ADD CONSTRAINT "Membership_tenantId_fkey" FOREIGN KEY (
 ALTER TABLE "Membership" ADD CONSTRAINT "Membership_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Client" ADD CONSTRAINT "Client_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Client" ADD CONSTRAINT "Client_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Property" ADD CONSTRAINT "Property_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Property" ADD CONSTRAINT "Property_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Property" ADD CONSTRAINT "Property_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Property" ADD CONSTRAINT "Property_tenantId_clientId_fkey" FOREIGN KEY ("tenantId", "clientId") REFERENCES "Client"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Service" ADD CONSTRAINT "Service_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Service" ADD CONSTRAINT "Service_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Service" ADD CONSTRAINT "Service_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Service" ADD CONSTRAINT "Service_tenantId_clientId_fkey" FOREIGN KEY ("tenantId", "clientId") REFERENCES "Client"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Service" ADD CONSTRAINT "Service_propertyId_fkey" FOREIGN KEY ("propertyId") REFERENCES "Property"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Service" ADD CONSTRAINT "Service_tenantId_clientId_propertyId_fkey" FOREIGN KEY ("tenantId", "clientId", "propertyId") REFERENCES "Property"("tenantId", "clientId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Lead" ADD CONSTRAINT "Lead_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Lead" ADD CONSTRAINT "Lead_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Lead" ADD CONSTRAINT "Lead_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Lead" ADD CONSTRAINT "Lead_tenantId_clientId_fkey" FOREIGN KEY ("tenantId", "clientId") REFERENCES "Client"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Lead" ADD CONSTRAINT "Lead_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Lead" ADD CONSTRAINT "Lead_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_tenantId_clientId_fkey" FOREIGN KEY ("tenantId", "clientId") REFERENCES "Client"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Opportunity" ADD CONSTRAINT "Opportunity_tenantId_clientId_serviceId_fkey" FOREIGN KEY ("tenantId", "clientId", "serviceId") REFERENCES "Service"("tenantId", "clientId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Proposal" ADD CONSTRAINT "Proposal_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Proposal" ADD CONSTRAINT "Proposal_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Proposal" ADD CONSTRAINT "Proposal_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Proposal" ADD CONSTRAINT "Proposal_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Contract" ADD CONSTRAINT "Contract_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Contract" ADD CONSTRAINT "Contract_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Contract" ADD CONSTRAINT "Contract_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Contract" ADD CONSTRAINT "Contract_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Contract" ADD CONSTRAINT "Contract_proposalId_fkey" FOREIGN KEY ("proposalId") REFERENCES "Proposal"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Contract" ADD CONSTRAINT "Contract_tenantId_serviceId_proposalId_fkey" FOREIGN KEY ("tenantId", "serviceId", "proposalId") REFERENCES "Proposal"("tenantId", "serviceId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProjectPhase" ADD CONSTRAINT "ProjectPhase_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProjectPhase" ADD CONSTRAINT "ProjectPhase_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProjectPhase" ADD CONSTRAINT "ProjectPhase_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ProjectPhase" ADD CONSTRAINT "ProjectPhase_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ServiceTask" ADD CONSTRAINT "ServiceTask_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ServiceTask" ADD CONSTRAINT "ServiceTask_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ServiceTask" ADD CONSTRAINT "ServiceTask_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ServiceTask" ADD CONSTRAINT "ServiceTask_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ServiceTask" ADD CONSTRAINT "ServiceTask_phaseId_fkey" FOREIGN KEY ("phaseId") REFERENCES "ProjectPhase"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ServiceTask" ADD CONSTRAINT "ServiceTask_tenantId_serviceId_phaseId_fkey" FOREIGN KEY ("tenantId", "serviceId", "phaseId") REFERENCES "ProjectPhase"("tenantId", "serviceId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ServiceTask" ADD CONSTRAINT "ServiceTask_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ServiceTask" ADD CONSTRAINT "ServiceTask_assigneeId_fkey" FOREIGN KEY ("assigneeId") REFERENCES "User"("id") ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ApprovalProcess" ADD CONSTRAINT "ApprovalProcess_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ApprovalProcess" ADD CONSTRAINT "ApprovalProcess_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ApprovalProcess" ADD CONSTRAINT "ApprovalProcess_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "ApprovalProcess" ADD CONSTRAINT "ApprovalProcess_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkLog" ADD CONSTRAINT "WorkLog_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "WorkLog" ADD CONSTRAINT "WorkLog_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkLog" ADD CONSTRAINT "WorkLog_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "WorkLog" ADD CONSTRAINT "WorkLog_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkLog" ADD CONSTRAINT "WorkLog_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "ServiceTask"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "WorkLog" ADD CONSTRAINT "WorkLog_tenantId_serviceId_taskId_fkey" FOREIGN KEY ("tenantId", "serviceId", "taskId") REFERENCES "ServiceTask"("tenantId", "serviceId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkMeasurement" ADD CONSTRAINT "WorkMeasurement_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "WorkMeasurement" ADD CONSTRAINT "WorkMeasurement_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkMeasurement" ADD CONSTRAINT "WorkMeasurement_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "WorkMeasurement" ADD CONSTRAINT "WorkMeasurement_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "WorkMeasurement" ADD CONSTRAINT "WorkMeasurement_taskId_fkey" FOREIGN KEY ("taskId") REFERENCES "ServiceTask"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "WorkMeasurement" ADD CONSTRAINT "WorkMeasurement_tenantId_serviceId_taskId_fkey" FOREIGN KEY ("tenantId", "serviceId", "taskId") REFERENCES "ServiceTask"("tenantId", "serviceId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Document" ADD CONSTRAINT "Document_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Document" ADD CONSTRAINT "Document_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Document" ADD CONSTRAINT "Document_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Document" ADD CONSTRAINT "Document_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Message" ADD CONSTRAINT "Message_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Message" ADD CONSTRAINT "Message_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Message" ADD CONSTRAINT "Message_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Message" ADD CONSTRAINT "Message_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Message" ADD CONSTRAINT "Message_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Message" ADD CONSTRAINT "Message_tenantId_clientId_fkey" FOREIGN KEY ("tenantId", "clientId") REFERENCES "Client"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Message" ADD CONSTRAINT "Message_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Message" ADD CONSTRAINT "Message_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TimelineEvent" ADD CONSTRAINT "TimelineEvent_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TimelineEvent" ADD CONSTRAINT "TimelineEvent_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "TimelineEvent" ADD CONSTRAINT "TimelineEvent_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "TimelineEvent" ADD CONSTRAINT "TimelineEvent_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AiInteraction" ADD CONSTRAINT "AiInteraction_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AiInteraction" ADD CONSTRAINT "AiInteraction_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AiInteraction" ADD CONSTRAINT "AiInteraction_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AiInteraction" ADD CONSTRAINT "AiInteraction_tenantId_serviceId_fkey" FOREIGN KEY ("tenantId", "serviceId") REFERENCES "Service"("tenantId", "id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AiInteraction" ADD CONSTRAINT "AiInteraction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "AiInteraction" ADD CONSTRAINT "AiInteraction_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE NO ACTION ON UPDATE CASCADE;
 
