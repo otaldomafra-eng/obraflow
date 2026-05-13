@@ -69,5 +69,5 @@ export function canTransitionServiceStatus(from: ServiceStatus, to: ServiceStatu
 }
 
 export function getDefaultModulesForServiceType(serviceType: ServiceType) {
-  return modulesByServiceType[serviceType];
+  return [...modulesByServiceType[serviceType]];
 }

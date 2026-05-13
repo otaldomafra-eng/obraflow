@@ -20,4 +20,19 @@ describe("service workflow", () => {
       "AI_ASSISTANT",
     ]);
   });
+
+  it("keeps regularization defaults isolated from caller mutations", () => {
+    const modules = getDefaultModulesForServiceType("REGULARIZATION");
+
+    modules.push("WORKS");
+
+    expect(getDefaultModulesForServiceType("REGULARIZATION")).toEqual([
+      "COMMERCIAL",
+      "PROPOSALS_CONTRACTS",
+      "APPROVALS",
+      "DOCUMENTS",
+      "CLIENT_PORTAL",
+      "AI_ASSISTANT",
+    ]);
+  });
 });
