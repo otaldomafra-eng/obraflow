@@ -4,6 +4,7 @@ test("admin signs in and sees app shell navigation", async ({ page }) => {
   await page.goto("/sign-in");
 
   await page.getByLabel("Email").fill("admin@obraflow.local");
+  await page.getByLabel("Senha").fill("obraflow123");
   await page.getByRole("button", { name: /sign in|entrar/i }).click();
 
   await page.waitForURL("/dashboard", { timeout: 15000 });

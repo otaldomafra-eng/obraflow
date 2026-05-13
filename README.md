@@ -47,6 +47,16 @@ pnpm db:seed
 
 ## End-to-End Tests
 
+Install Playwright browsers (one-time):
+
+```bash
+pnpm setup:e2e
+```
+
+Then run:
+
 ```bash
 pnpm test:e2e
 ```
+
+> **Note:** E2E tests require a running dev server (`pnpm dev`) and a seeded database. They are excluded from `pnpm test` — only unit and integration tests run there.

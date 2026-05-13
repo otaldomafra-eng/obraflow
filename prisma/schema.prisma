@@ -78,19 +78,16 @@ model Tenant {
 }
 
 model User {
-  id             String          @id @default(cuid())
-  name           String?
-  email          String?         @unique
-  emailVerified  DateTime?
-  image          String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  accounts       Account[]
-  sessions       Session[]
-  memberships    Membership[]
-  assignedTasks  ServiceTask[]
-  messages       Message[]
-  aiInteractions AiInteraction[]
+  id            String      @id @default(cuid())
+  name          String?
+  email         String?     @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  memberships   Membership[]
 }
 
 model Account {
@@ -131,15 +128,19 @@ model VerificationToken {
 }
 
 model Membership {
-  id        String   @id @default(cuid())
-  tenantId  String
-  userId    String
-  role      Role
-  createdAt DateTime @default(now())
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String            @id @default(cuid())
+  tenantId       String
+  userId         String
+  role           Role
+  createdAt      DateTime          @default(now())
+  tenant         Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedTasks  ServiceTask[]
+  messages       Message[]
+  aiInteractions AiInteraction[]
 
   @@unique([tenantId, userId])
+  @@index([tenantId, userId])
   @@index([userId])
 }
 
@@ -355,7 +356,7 @@ model ServiceTask {
   tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   service      Service           @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
   phase        ProjectPhase?     @relation(fields: [tenantId, serviceId, phaseId], references: [tenantId, serviceId, id], onDelete: Restrict)
-  assignee     User?             @relation(fields: [assigneeId], references: [id], onDelete: NoAction)
+  assignee     Membership?       @relation(fields: [tenantId, assigneeId], references: [tenantId, userId], onDelete: NoAction)
   workLogs     WorkLog[]
   measurements WorkMeasurement[]
 
@@ -364,7 +365,7 @@ model ServiceTask {
   @@unique([tenantId, externalKey])
   @@index([tenantId, serviceId])
   @@index([tenantId, serviceId, phaseId])
-  @@index([assigneeId])
+  @@index([tenantId, assigneeId])
 }
 
 model ApprovalProcess {
@@ -450,25 +451,25 @@ model Document {
 }
 
 model Message {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   tenantId    String
   externalKey String?
   serviceId   String
   clientId    String?
   userId      String?
   body        String
-  channel     String   @default("PORTAL")
-  createdAt   DateTime @default(now())
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  service     Service  @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
-  client      Client?  @relation(fields: [tenantId, clientId], references: [tenantId, id], onDelete: Restrict)
-  user        User?    @relation(fields: [userId], references: [id], onDelete: NoAction)
+  channel     String      @default("PORTAL")
+  createdAt   DateTime    @default(now())
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  service     Service     @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
+  client      Client?     @relation(fields: [tenantId, clientId], references: [tenantId, id], onDelete: Restrict)
+  user        Membership? @relation(fields: [tenantId, userId], references: [tenantId, userId], onDelete: NoAction)
 
   @@unique([tenantId, id])
   @@unique([tenantId, externalKey])
   @@index([tenantId, serviceId])
   @@index([tenantId, clientId])
-  @@index([userId])
+  @@index([tenantId, userId])
 }
 
 model TimelineEvent {
@@ -490,21 +491,21 @@ model TimelineEvent {
 }
 
 model AiInteraction {
-  id          String   @id @default(cuid())
+  id          String      @id @default(cuid())
   tenantId    String
   externalKey String?
   serviceId   String
   userId      String?
   model       String
-  prompt      String   @db.Text
-  response    String?  @db.Text
-  createdAt   DateTime @default(now())
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  service     Service  @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
-  user        User?    @relation(fields: [userId], references: [id], onDelete: NoAction)
+  prompt      String      @db.Text
+  response    String?     @db.Text
+  createdAt   DateTime    @default(now())
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  service     Service     @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
+  user        Membership? @relation(fields: [tenantId, userId], references: [tenantId, userId], onDelete: NoAction)
 
   @@unique([tenantId, id])
   @@unique([tenantId, externalKey])
   @@index([tenantId, serviceId])
-  @@index([userId])
+  @@index([tenantId, userId])
 }

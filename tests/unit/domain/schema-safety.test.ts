@@ -92,4 +92,16 @@ describe("Prisma schema safety", () => {
       expect(relationLines.join("\n")).not.toContain("onDelete: SetNull");
     }
   });
+
+  it("references user through tenant-scoped Membership instead of global User", () => {
+    expect(modelBlock("ServiceTask")).toMatch(
+      /assignee\s+Membership\?\s+@relation\(fields: \[tenantId, assigneeId\], references: \[tenantId, userId\], onDelete: NoAction\)/,
+    );
+    expect(modelBlock("Message")).toMatch(
+      /user\s+Membership\?\s+@relation\(fields: \[tenantId, userId\], references: \[tenantId, userId\], onDelete: NoAction\)/,
+    );
+    expect(modelBlock("AiInteraction")).toMatch(
+      /user\s+Membership\?\s+@relation\(fields: \[tenantId, userId\], references: \[tenantId, userId\], onDelete: NoAction\)/,
+    );
+  });
 });

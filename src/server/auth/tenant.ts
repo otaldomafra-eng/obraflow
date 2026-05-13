@@ -9,14 +9,7 @@ import { authOptions } from "./config";
 export async function getCurrentTenantId(): Promise<string | null> {
   const session = await getServerSession(authOptions);
 
-  if (!session?.user?.id) return null;
-
-  const membership = await prisma.membership.findFirst({
-    where: { userId: session.user.id },
-    select: { tenantId: true },
-  });
-
-  return membership?.tenantId ?? null;
+  return session?.user?.tenantId ?? null;
 }
 
 export async function requireTenantId(): Promise<string> {
@@ -36,11 +29,15 @@ export async function requireRole(
 
   if (!session?.user?.id) throw new Error("Not authenticated");
 
-  const membership = await prisma.membership.findFirst({
-    where: { userId: session.user.id },
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId) throw new Error("No tenant context");
+
+  const membership = await prisma.membership.findUnique({
+    where: { tenantId_userId: { tenantId, userId: session.user.id } },
   });
 
-  if (!membership) throw new Error("User has no tenant membership");
+  if (!membership) throw new Error("User has no membership in this tenant");
 
   const role = membership.role as UserRole;
 
@@ -50,7 +47,7 @@ export async function requireRole(
     );
   }
 
-  return { tenantId: membership.tenantId, role };
+  return { tenantId, role };
 }
 
 export async function requireCapability(
@@ -60,15 +57,19 @@ export async function requireCapability(
 
   if (!session?.user?.id) throw new Error("Not authenticated");
 
-  const membership = await prisma.membership.findFirst({
-    where: { userId: session.user.id },
+  const tenantId = session.user.tenantId;
+
+  if (!tenantId) throw new Error("No tenant context");
+
+  const membership = await prisma.membership.findUnique({
+    where: { tenantId_userId: { tenantId, userId: session.user.id } },
   });
 
-  if (!membership) throw new Error("User has no tenant membership");
+  if (!membership) throw new Error("User has no membership in this tenant");
 
   const role = membership.role as UserRole;
 
   assertCapability(role, capability);
 
-  return { tenantId: membership.tenantId, role };
+  return { tenantId, role };
 }
