@@ -11,7 +11,7 @@ test("admin signs in and sees app shell navigation", async ({ page }) => {
 
   await page.waitForURL("/dashboard", { timeout: 15000 });
 
-  await expect(page.getByText("Painel")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Painel" })).toBeVisible();
   await expect(page.getByText("Visão executiva da operação.")).toBeVisible();
 
   const navEntries = [
@@ -31,7 +31,7 @@ test("admin signs in and sees app shell navigation", async ({ page }) => {
   ];
 
   for (const entry of navEntries) {
-    await expect(page.getByRole("link", { name: entry })).toBeVisible();
+    await expect(page.getByRole("link", { name: entry, exact: true })).toBeVisible();
   }
 
   await expect(page.getByText("Demo ObraFlow")).toBeVisible();

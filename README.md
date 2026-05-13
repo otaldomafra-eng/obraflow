@@ -23,6 +23,7 @@ cp .env.example .env
 Run the development server:
 
 ```bash
+pnpm db:setup
 pnpm dev
 ```
 
@@ -39,9 +40,21 @@ pnpm build
 
 ## Database
 
+Start the local PostgreSQL container, wait for readiness, apply migrations, and
+seed the demo tenant:
+
 ```bash
+pnpm db:setup
+```
+
+Individual commands are also available:
+
+```bash
+pnpm db:up
+pnpm db:wait
 pnpm db:generate
 pnpm db:migrate
+pnpm db:deploy
 pnpm db:seed
 ```
 
@@ -49,22 +62,7 @@ pnpm db:seed
 
 ### Prerequisites
 
-E2E tests require a running PostgreSQL instance and a seeded database.
-
-1. Start PostgreSQL on `localhost:5432`
-
-2. Create the database and user:
-   ```bash
-   createdb obraflow
-   createuser obraflow --password
-   # use "obraflow" as password
-   ```
-
-3. Apply migrations and seed:
-   ```bash
-   pnpm db:migrate
-   pnpm db:seed
-   ```
+E2E tests use the Docker PostgreSQL service on `localhost:55432`.
 
 ### Run
 
@@ -81,5 +79,6 @@ pnpm test:e2e
 ```
 
 The `webServer` in `playwright.config.ts` automatically starts `pnpm dev`, so the dev server does not need to be started beforehand.
+It also runs `pnpm db:setup` first, so the demo tenant and login user are recreated before the browser tests run.
 
 > **Note:** E2E tests are excluded from `pnpm test` — only unit and integration tests run there.

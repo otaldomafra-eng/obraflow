@@ -11,7 +11,11 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "db:generate": "prisma generate",
+    "db:up": "docker compose up -d postgres",
+    "db:wait": "tsx scripts/wait-for-db.ts",
+    "db:setup": "pnpm db:up && pnpm db:wait && pnpm db:generate && pnpm db:deploy && pnpm db:seed",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "typecheck": "tsc --noEmit",
     "setup:e2e": "playwright install"

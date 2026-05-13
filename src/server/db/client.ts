@@ -10,7 +10,7 @@ const log: NonNullable<ConstructorParameters<typeof PrismaClient>[0]>["log"] =
 
 const connectionString =
   process.env.DATABASE_URL ??
-  "postgresql://obraflow:obraflow@localhost:5432/obraflow";
+  "postgresql://obraflow:obraflow@localhost:55432/obraflow";
 
 const prismaOptions: ConstructorParameters<typeof PrismaClient>[0] = {
   adapter: new PrismaPg({ connectionString }),

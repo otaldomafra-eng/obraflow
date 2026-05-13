@@ -11,7 +11,7 @@ import {
 
 const connectionString =
   process.env.DATABASE_URL ??
-  "postgresql://obraflow:obraflow@localhost:5432/obraflow";
+  "postgresql://obraflow:obraflow@localhost:55432/obraflow";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
