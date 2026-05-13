@@ -3,6 +3,7 @@ import type { UserRole } from "./types";
 export type Capability =
   | "settings.manage"
   | "clients.manage"
+  | "services.manage"
   | "commercial.manage"
   | "proposals.manage"
   | "projects.manage"
@@ -16,6 +17,7 @@ const permissionMatrix: Record<UserRole, Capability[]> = {
   ADMIN: [
     "settings.manage",
     "clients.manage",
+    "services.manage",
     "commercial.manage",
     "proposals.manage",
     "projects.manage",
@@ -28,6 +30,7 @@ const permissionMatrix: Record<UserRole, Capability[]> = {
   MANAGER: [
     "settings.manage",
     "clients.manage",
+    "services.manage",
     "commercial.manage",
     "proposals.manage",
     "projects.manage",
@@ -39,6 +42,7 @@ const permissionMatrix: Record<UserRole, Capability[]> = {
   ],
   INTERNAL_TEAM: [
     "clients.manage",
+    "services.manage",
     "projects.manage",
     "approvals.manage",
     "documents.manage",
@@ -47,18 +51,21 @@ const permissionMatrix: Record<UserRole, Capability[]> = {
   ],
   COMMERCIAL: [
     "clients.manage",
+    "services.manage",
     "commercial.manage",
     "proposals.manage",
     "documents.manage",
     "portal.view",
   ],
   TECHNICIAN: [
+    "services.manage",
     "projects.manage",
     "documents.manage",
     "portal.view",
     "ai.use",
   ],
   FIELD: [
+    "services.manage",
     "works.manage",
     "documents.manage",
     "portal.view",
@@ -75,6 +82,7 @@ const permissionMatrix: Record<UserRole, Capability[]> = {
 const allCapabilities = new Set<Capability>([
   "settings.manage",
   "clients.manage",
+  "services.manage",
   "commercial.manage",
   "proposals.manage",
   "projects.manage",
