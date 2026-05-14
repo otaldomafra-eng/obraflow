@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { prisma } from "@/server/db/client";
-import type { ServiceStatus } from "@/domain/obraflow/types";
 
 const taskStatuses = [
   "PLANNING",
@@ -9,8 +8,6 @@ const taskStatuses = [
   "DELIVERED",
   "CANCELED",
 ] as const;
-
-type TaskStatus = (typeof taskStatuses)[number];
 
 const createServiceTaskSchema = z.object({
   serviceId: z.string().min(1),
@@ -41,6 +38,22 @@ async function assertServiceBelongsToTenant(
   }
 }
 
+async function assertTaskBelongsToTenant(
+  tenantId: string,
+  taskId: string,
+): Promise<void> {
+  const task = await prisma.serviceTask.findUnique({
+    where: { tenantId_id: { tenantId, id: taskId } },
+    select: { id: true },
+  });
+
+  if (!task) {
+    throw new Error(
+      `Task ${taskId} does not belong to tenant ${tenantId}`,
+    );
+  }
+}
+
 export async function createServiceTask(
   tenantId: string,
   input: CreateServiceTaskInput,
@@ -55,7 +68,7 @@ export async function createServiceTask(
       serviceId: data.serviceId,
       title: data.title,
       description: data.description ?? null,
-      status: (data.status ?? "PLANNING") as ServiceStatus,
+      status: data.status ?? "PLANNING",
       dueDate: data.dueDate,
     },
   });
@@ -78,7 +91,7 @@ export async function updateServiceTask(
   if (data.title !== undefined) updateData.title = data.title;
   if (data.description !== undefined)
     updateData.description = data.description ?? null;
-  if (data.status !== undefined) updateData.status = data.status as ServiceStatus;
+  if (data.status !== undefined) updateData.status = data.status;
   if (data.dueDate !== undefined) updateData.dueDate = data.dueDate;
 
   return prisma.serviceTask.update({
@@ -88,6 +101,8 @@ export async function updateServiceTask(
 }
 
 export async function deleteServiceTask(tenantId: string, taskId: string) {
+  await assertTaskBelongsToTenant(tenantId, taskId);
+
   return prisma.serviceTask.delete({
     where: { tenantId_id: { tenantId, id: taskId } },
   });
@@ -106,10 +121,14 @@ export async function listServiceTasks(tenantId: string, serviceId: string) {
 }
 
 export async function getServiceTask(tenantId: string, taskId: string) {
+  await assertTaskBelongsToTenant(tenantId, taskId);
+
   return prisma.serviceTask.findUnique({
     where: { tenantId_id: { tenantId, id: taskId } },
+    include: {
+      _count: { select: { workLogs: true } },
+    },
   });
 }
 
-// Re-export schemas for testing
 export { createServiceTaskSchema, updateServiceTaskSchema };

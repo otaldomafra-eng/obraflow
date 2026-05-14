@@ -9,15 +9,15 @@ interface ServiceTaskListProps {
 
 const statusColors: Record<string, string> = {
   PLANNING: "bg-purple-50 text-purple-700",
-  IN_PROGRESS: "bg-blue-50 text-blue-700",
-  DONE: "bg-emerald-50 text-emerald-700",
+  PRODUCTION: "bg-indigo-50 text-indigo-700",
+  DELIVERED: "bg-emerald-50 text-emerald-700",
   CANCELED: "bg-red-50 text-red-700",
 };
 
 const statusLabels: Record<string, string> = {
   PLANNING: "Planejamento",
-  IN_PROGRESS: "Em Andamento",
-  DONE: "Concluída",
+  PRODUCTION: "Em Produção",
+  DELIVERED: "Entregue",
   CANCELED: "Cancelada",
 };
 
