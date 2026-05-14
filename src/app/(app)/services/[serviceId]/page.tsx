@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 import { getServiceDetail } from "@/features/services/actions";
+import { createServiceTask } from "@/features/service-tasks/actions";
+import { ServiceTaskForm } from "@/features/service-tasks/ServiceTaskForm";
+import { ServiceTaskList } from "@/features/service-tasks/ServiceTaskList";
+import { listServiceTasks } from "@/features/service-tasks/actions";
 import { requireTenantId } from "@/server/auth/tenant";
 
 const statusLabels: Record<string, string> = {
@@ -40,6 +45,22 @@ export default async function ServiceDetailPage({
 
   if (!service) {
     notFound();
+  }
+
+  const tasks = await listServiceTasks(tenantId, serviceId);
+
+  async function handleCreateTask(formData: FormData) {
+    "use server";
+
+await createServiceTask(tenantId, {
+       serviceId,
+       title: formData.get("title") as string,
+       description: (formData.get("description") as string) || undefined,
+       status: (formData.get("status") as "PLANNING" | "PRODUCTION" | "DELIVERED" | "CANCELED") || undefined,
+       dueDate: (formData.get("dueDate") as string) || undefined,
+     });
+
+    revalidatePath(`/services/${serviceId}`);
   }
 
   return (
@@ -144,25 +165,34 @@ export default async function ServiceDetailPage({
         </div>
       </div>
 
-      {service.client.email && (
-        <div className="rounded-xl border bg-white p-6">
-          <h2 className="mb-4 text-base font-semibold">Contato do Cliente</h2>
-          <div className="space-y-2 text-sm">
-            {service.client.email && (
-              <p>
-                <span className="font-medium text-zinc-500">Email:</span>{" "}
-                {service.client.email}
-              </p>
-            )}
-            {service.client.phone && (
-              <p>
-                <span className="font-medium text-zinc-500">Telefone:</span>{" "}
-                {service.client.phone}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
+{service.client.email && (
+         <div className="rounded-xl border bg-white p-6">
+           <h2 className="mb-4 text-base font-semibold">Contato do Cliente</h2>
+           <div className="space-y-2 text-sm">
+             {service.client.email && (
+               <p>
+                 <span className="font-medium text-zinc-500">Email:</span>{" "}
+                 {service.client.email}
+               </p>
+             )}
+             {service.client.phone && (
+               <p>
+                 <span className="font-medium text-zinc-500">Telefone:</span>{" "}
+                 {service.client.phone}
+               </p>
+             )}
+           </div>
+         </div>
+       )}
+
+       <div className="rounded-xl border bg-white p-6">
+         <h2 className="mb-4 text-base font-semibold">Tarefas</h2>
+         <ServiceTaskList data={tasks} serviceId={serviceId} />
+         <div className="mt-6 border-t pt-4">
+           <h3 className="mb-2 text-sm font-medium text-zinc-700">Nova Tarefa</h3>
+           <ServiceTaskForm action={handleCreateTask} serviceId={serviceId} />
+         </div>
+       </div>
+     </div>
   );
 }

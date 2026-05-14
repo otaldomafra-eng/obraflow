@@ -40,6 +40,19 @@ vi.mock("@/features/services/actions", () => ({
   })),
 }));
 
+vi.mock("@/features/service-tasks/actions", () => ({
+  listServiceTasks: vi.fn(async () => []),
+  createServiceTask: vi.fn(async () => ({})),
+}));
+
+vi.mock("@/features/service-tasks/ServiceTaskForm", () => ({
+  ServiceTaskForm: () => null,
+}));
+
+vi.mock("@/features/service-tasks/ServiceTaskList", () => ({
+  ServiceTaskList: () => null,
+}));
+
 describe("ServiceDetailPage", () => {
   it("links the client to its detail page and renders property as text", async () => {
     render(
