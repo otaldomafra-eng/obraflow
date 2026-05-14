@@ -58,7 +58,23 @@ describe("reorderServiceTasks", () => {
     });
   });
 
-  it("rejects when a taskId does not belong to the service", async () => {
+  it("rejects when task list is incomplete (partial list)", async () => {
+    prismaMock.service.findUnique.mockResolvedValue({ id: "service-1" });
+    prismaMock.serviceTask.findMany.mockResolvedValue([
+      { id: "task-a" },
+      { id: "task-b" },
+      { id: "task-c" },
+    ]);
+
+    await expect(
+      reorderServiceTasks("tenant-1", "service-1", ["task-a", "task-b"]),
+    ).rejects.toThrow(/Expected 3 tasks, got 2/);
+
+    expect(prismaMock.serviceTask.update).not.toHaveBeenCalled();
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
+  });
+
+  it("rejects when task list contains duplicate IDs", async () => {
     prismaMock.service.findUnique.mockResolvedValue({ id: "service-1" });
     prismaMock.serviceTask.findMany.mockResolvedValue([
       { id: "task-a" },
@@ -66,14 +82,11 @@ describe("reorderServiceTasks", () => {
     ]);
 
     await expect(
-      reorderServiceTasks("tenant-1", "service-1", [
-        "task-a",
-        "task-b",
-        "task-c",
-      ]),
-    ).rejects.toThrow(/not belong to service/);
+      reorderServiceTasks("tenant-1", "service-1", ["task-a", "task-a"]),
+    ).rejects.toThrow(/Duplicate task IDs/);
 
     expect(prismaMock.serviceTask.update).not.toHaveBeenCalled();
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
   });
 
   it("rejects when service does not belong to tenant", async () => {
@@ -81,6 +94,20 @@ describe("reorderServiceTasks", () => {
 
     await expect(
       reorderServiceTasks("tenant-1", "service-1", ["task-a", "task-b"]),
-    ).rejects.toThrow(/does not belong to tenant/);
+    ).rejects.toThrow(/Service.*does not belong/);
+  });
+
+  it("rejects when task list contains foreign task from different service", async () => {
+    prismaMock.service.findUnique.mockResolvedValue({ id: "service-1" });
+    prismaMock.serviceTask.findMany.mockResolvedValue([
+      { id: "task-a" },
+      { id: "task-b" },
+    ]);
+
+    await expect(
+      reorderServiceTasks("tenant-1", "service-1", ["task-a", "task-foreign"]),
+    ).rejects.toThrow(/Expected 2 tasks, got 2/);
+
+    expect(prismaMock.serviceTask.update).not.toHaveBeenCalled();
   });
 });

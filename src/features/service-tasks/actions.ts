@@ -150,16 +150,30 @@ export async function reorderServiceTasks(
 ) {
   reorderServiceTasksSchema.parse({ taskIds });
 
+  // Reject duplicate IDs in the request
+  if (new Set(taskIds).size !== taskIds.length) {
+    throw new Error("Duplicate task IDs are not allowed");
+  }
+
   await assertServiceBelongsToTenant(tenantId, serviceId);
 
-  const tasks = await prisma.serviceTask.findMany({
-    where: { tenantId, serviceId, id: { in: taskIds } },
+  // Fetch ALL tasks for this service to enforce full list validation
+  const allTasks = await prisma.serviceTask.findMany({
+    where: { tenantId, serviceId },
     select: { id: true },
   });
 
-  if (tasks.length !== taskIds.length) {
+  const allTaskIds = allTasks.map((t) => t.id).sort();
+  const sortedInput = [...taskIds].sort();
+
+  // The submitted list must contain exactly the same IDs as the service's tasks
+  if (
+    allTaskIds.length !== sortedInput.length ||
+    !allTaskIds.every((id, i) => id === sortedInput[i])
+  ) {
     throw new Error(
-      `One or more tasks do not belong to service ${serviceId} in tenant ${tenantId}`,
+      `The task list must include all tasks of service ${serviceId}. ` +
+        `Expected ${allTaskIds.length} tasks, got ${taskIds.length}.`,
     );
   }
 

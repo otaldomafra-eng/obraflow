@@ -223,7 +223,44 @@ describe.skipIf(process.env.RUN_DB_TESTS !== "1")(
 
       await expect(
         reorderServiceTasks(tenantId, serviceA.id, [taskA.id, taskB.id]),
-      ).rejects.toThrow(/not belong to service/);
+      ).rejects.toThrow(/Expected 1 tasks, got 2/);
+    });
+
+    it("rejects when task list contains duplicate IDs", async () => {
+      const suffix = `reorder-dup-${Date.now()}`;
+      const client = await createClient(tenantId, {
+        name: `Client ${suffix}`,
+        kind: "PERSON",
+      });
+      const service = await createService(tenantId, {
+        clientId: client.id,
+        title: `Service ${suffix}`,
+        type: "FIRE_SAFETY",
+      });
+      const taskA = await createServiceTask(tenantId, {
+        serviceId: service.id,
+        title: `Task A ${suffix}`,
+      });
+      const taskB = await createServiceTask(tenantId, {
+        serviceId: service.id,
+        title: `Task B ${suffix}`,
+      });
+
+      await expect(
+        reorderServiceTasks(tenantId, service.id, [
+          taskA.id,
+          taskA.id,
+          taskB.id,
+        ]),
+      ).rejects.toThrow(/Duplicate task IDs/);
+
+      const tasks = await prisma.serviceTask.findMany({
+        where: { tenantId, serviceId: service.id },
+        orderBy: { sortOrder: "asc" },
+      });
+
+      expect(tasks[0].sortOrder).toBe(0);
+      expect(tasks[1].sortOrder).toBe(1);
     });
   },
 );

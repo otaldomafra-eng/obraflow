@@ -32,6 +32,7 @@ export function ServiceTaskSortableList({
   onReorder,
 }: ServiceTaskSortableListProps) {
   const [items, setItems] = useState(initialData);
+  const [error, setError] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -42,6 +43,24 @@ export function ServiceTaskSortableList({
     }),
   );
 
+  const reorderWithRollback = useCallback(
+    async (newItems: typeof items) => {
+      const previousItems = items;
+      setItems(newItems);
+      setError(null);
+
+      try {
+        await onReorder(newItems.map((t) => t.id));
+      } catch (e) {
+        setItems(previousItems);
+        setError(
+          e instanceof Error ? e.message : "Erro ao reordenar tarefas",
+        );
+      }
+    },
+    [items, onReorder],
+  );
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
@@ -50,11 +69,10 @@ export function ServiceTaskSortableList({
       const oldIndex = items.findIndex((t) => t.id === active.id);
       const newIndex = items.findIndex((t) => t.id === over.id);
       const newItems = arrayMove(items, oldIndex, newIndex);
-      setItems(newItems);
 
-      await onReorder(newItems.map((t) => t.id));
+      await reorderWithRollback(newItems);
     },
-    [items, onReorder],
+    [items, reorderWithRollback],
   );
 
   const handleMove = useCallback(
@@ -63,11 +81,9 @@ export function ServiceTaskSortableList({
       if (newIndex < 0 || newIndex >= items.length) return;
 
       const newItems = arrayMove(items, index, newIndex);
-      setItems(newItems);
-
-      await onReorder(newItems.map((t) => t.id));
+      await reorderWithRollback(newItems);
     },
-    [items, onReorder],
+    [items, reorderWithRollback],
   );
 
   return (
@@ -125,6 +141,12 @@ export function ServiceTaskSortableList({
       {items.length === 0 && (
         <div className="px-4 py-12 text-center text-sm text-zinc-400">
           Nenhuma tarefa criada ainda.
+        </div>
+      )}
+
+      {error && (
+        <div className="border-t border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
         </div>
       )}
     </div>
