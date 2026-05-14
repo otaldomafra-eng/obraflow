@@ -21,7 +21,7 @@ if (existsSync(envPath)) {
 
 const connectionString =
   process.env.DATABASE_URL ??
-  "postgresql://postgres:replace-with-password@db.fhtyhqvxwiajoctailir.supabase.co:5432/postgres?sslmode=require&uselibpqcompat=true";
+  "postgresql://postgres.fhtyhqvxwiajoctailir:replace-with-password@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&uselibpqcompat=true";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),

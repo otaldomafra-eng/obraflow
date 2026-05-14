@@ -45,10 +45,19 @@ pnpm build
 ObraFlow uses PostgreSQL through Supabase for development and test data. Create a
 Supabase project for non-production work, then set `DATABASE_URL` in `.env`.
 
-Use the direct database connection string for migrations and local development:
+Use the Supavisor session pooler connection string for migrations and local
+development. This avoids the direct Supabase database host, which is IPv6-only by
+default and can fail on local networks or deploy providers that require IPv4:
 
 ```bash
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.fhtyhqvxwiajoctailir.supabase.co:5432/postgres?sslmode=require&uselibpqcompat=true"
+DATABASE_URL="postgresql://postgres.fhtyhqvxwiajoctailir:[PASSWORD]@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&uselibpqcompat=true"
+```
+
+For Vercel runtime, use the Supavisor transaction pooler on port `6543` in the
+Vercel `DATABASE_URL` environment variable:
+
+```bash
+DATABASE_URL="postgresql://postgres.fhtyhqvxwiajoctailir:[PASSWORD]@aws-1-us-west-2.pooler.supabase.com:6543/postgres?sslmode=require&uselibpqcompat=true"
 ```
 
 After the environment is configured, generate Prisma Client, apply migrations,

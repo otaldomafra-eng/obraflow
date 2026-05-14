@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const supabaseDatabaseUrl =
-  "postgresql://postgres:[PASSWORD]@db.fhtyhqvxwiajoctailir.supabase.co:5432/postgres?sslmode=require&uselibpqcompat=true";
+  "postgresql://postgres.fhtyhqvxwiajoctailir:[PASSWORD]@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&uselibpqcompat=true";
 
 function readProjectFile(...segments: string[]) {
   return readFileSync(join(root, ...segments), "utf8");
@@ -38,6 +38,8 @@ describe("remote development database setup", () => {
     expect(prismaConfig).toContain("loadEnvFile");
     expect(seedScript).toContain("loadEnvFile");
     expect(envExample).toContain(`DATABASE_URL="${supabaseDatabaseUrl}"`);
+    expect(envExample).toContain('DEMO_LOGIN_ENABLED="true"');
+    expect(readme).toContain("aws-1-us-west-2.pooler.supabase.com:6543");
     expect(readme).toContain("Supabase");
     expect(readme).not.toContain("Docker PostgreSQL");
   });

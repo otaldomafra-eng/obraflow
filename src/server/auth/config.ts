@@ -17,7 +17,10 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email) return null;
 
-        if (process.env.NODE_ENV !== "development") {
+        if (
+          process.env.NODE_ENV !== "development" &&
+          process.env.DEMO_LOGIN_ENABLED !== "true"
+        ) {
           return null;
         }
 
