@@ -349,6 +349,7 @@ model ServiceTask {
   title        String
   description  String?
   status       ServiceStatus     @default(PLANNING)
+  sortOrder    Int               @default(0)
   dueDate      DateTime?
   completedAt  DateTime?
   createdAt    DateTime          @default(now())
