@@ -19,6 +19,9 @@ export function ClientList({ data }: ClientListProps) {
               Tipo
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+              Documento
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
               Contato
             </th>
             <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">
@@ -53,6 +56,13 @@ export function ClientList({ data }: ClientListProps) {
                 </span>
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-600">
+                {client.document ? (
+                  <span className="font-mono text-xs">{client.document}</span>
+                ) : (
+                  <span className="text-xs text-zinc-300">&mdash;</span>
+                )}
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-600">
                 {client.email && <div>{client.email}</div>}
                 {client.phone && (
                   <div className="text-xs text-zinc-400">{client.phone}</div>
@@ -78,8 +88,18 @@ export function ClientList({ data }: ClientListProps) {
       </table>
 
       {data.items.length === 0 && (
-        <div className="px-4 py-12 text-center text-sm text-zinc-400">
-          Nenhum cliente encontrado.
+        <div className="px-4 py-12 text-center">
+          <p className="text-sm text-zinc-400">Nenhum cliente encontrado.</p>
+          {data.search && (
+            <p className="mt-1 text-xs text-zinc-400">
+              Tente ajustar a busca ou limpar o filtro.
+            </p>
+          )}
+          {!data.search && (
+            <p className="mt-1 text-xs text-zinc-400">
+              Crie um novo cliente usando o formulário ao lado.
+            </p>
+          )}
         </div>
       )}
     </div>

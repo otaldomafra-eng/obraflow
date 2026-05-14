@@ -1,13 +1,17 @@
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
 
 import { ClientForm } from "@/features/clients/ClientForm";
 import { ClientList } from "@/features/clients/ClientList";
 import { createClient, listClients } from "@/features/clients/actions";
 import { requireTenantId } from "@/server/auth/tenant";
 
-export default async function ClientsPage() {
+export default async function ClientsPage(props: {
+  searchParams: Promise<{ search?: string }>;
+}) {
+  const { search } = await props.searchParams;
   const tenantId = await requireTenantId();
-  const data = await listClients(tenantId);
+  const data = await listClients(tenantId, { search });
 
   async function handleCreate(formData: FormData) {
     "use server";
@@ -32,6 +36,25 @@ export default async function ClientsPage() {
         <p className="mt-1 text-sm text-zinc-500">
           Gerencie pessoas físicas e jurídicas.
         </p>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <form className="flex-1">
+          <input
+            name="search"
+            defaultValue={search ?? ""}
+            placeholder="Buscar clientes por nome, email ou CPF/CNPJ..."
+            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          />
+        </form>
+        {search && (
+          <Link
+            href="/clients"
+            className="shrink-0 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            Limpar
+          </Link>
+        )}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { prisma } from "@/server/db/client";
 
-const createClientSchema = z.object({
+export const createClientSchema = z.object({
   name: z.string().min(1),
   kind: z.enum(["PERSON", "COMPANY"]),
   document: z.string().optional(),
@@ -11,9 +11,9 @@ const createClientSchema = z.object({
   notes: z.string().optional(),
 });
 
-const updateClientSchema = createClientSchema.partial();
+export const updateClientSchema = createClientSchema.partial();
 
-const listClientsSchema = z.object({
+export const listClientsSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().optional(),
@@ -93,7 +93,7 @@ export async function listClients(
     prisma.client.count({ where }),
   ]);
 
-  return { items, total, page, pageSize };
+  return { items, total, page, pageSize, search };
 }
 
 export async function getClientDetail(tenantId: string, clientId: string) {
