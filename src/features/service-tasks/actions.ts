@@ -132,11 +132,45 @@ export async function listServiceTasks(tenantId: string, serviceId: string) {
 
   return prisma.serviceTask.findMany({
     where: { tenantId, serviceId },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     include: {
       _count: { select: { workLogs: true } },
     },
   });
+}
+
+const reorderServiceTasksSchema = z.object({
+  taskIds: z.array(z.string().min(1)).min(2),
+});
+
+export async function reorderServiceTasks(
+  tenantId: string,
+  serviceId: string,
+  taskIds: string[],
+) {
+  reorderServiceTasksSchema.parse({ taskIds });
+
+  await assertServiceBelongsToTenant(tenantId, serviceId);
+
+  const tasks = await prisma.serviceTask.findMany({
+    where: { tenantId, serviceId, id: { in: taskIds } },
+    select: { id: true },
+  });
+
+  if (tasks.length !== taskIds.length) {
+    throw new Error(
+      `One or more tasks do not belong to service ${serviceId} in tenant ${tenantId}`,
+    );
+  }
+
+  const updates = taskIds.map((id, index) =>
+    prisma.serviceTask.update({
+      where: { tenantId_id: { tenantId, id } },
+      data: { sortOrder: index },
+    }),
+  );
+
+  await prisma.$transaction(updates);
 }
 
 export async function getServiceTask(
