@@ -89,6 +89,12 @@ export default async function ServiceTaskDetailPage({
         >
           Editar tarefa →
         </Link>
+        <Link
+          href={`/services/${serviceId}/tasks/${taskId}/work-logs`}
+          className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
+        >
+          Registros de trabalho ({task._count.workLogs})
+        </Link>
       </div>
     </div>
   );
