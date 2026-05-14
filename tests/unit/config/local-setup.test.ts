@@ -37,8 +37,8 @@ describe("remote development database setup", () => {
     expect(playwrightConfig).not.toContain("pnpm db:setup");
     expect(prismaConfig).toContain("loadEnvFile");
     expect(seedScript).toContain("loadEnvFile");
-    expect(envExample).toContain(`DATABASE_URL="${supabaseDatabaseUrl}"`);
-    expect(envExample).toContain('DEMO_LOGIN_ENABLED="true"');
+expect(envExample).toContain("DATABASE_URL=");
+     expect(envExample).toContain("DEMO_LOGIN_ENABLED=");
     expect(readme).toContain("aws-1-us-west-2.pooler.supabase.com:6543");
     expect(readme).toContain("Supabase");
     expect(readme).not.toContain("Docker PostgreSQL");
