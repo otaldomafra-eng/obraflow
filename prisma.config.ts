@@ -10,6 +10,16 @@ if (existsSync(envPath)) {
   loadEnvFile(envPath);
 }
 
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(
+      `Missing required environment variable: ${name}. Check .env or your hosting environment configuration.`,
+    );
+  }
+  return value;
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
@@ -17,8 +27,6 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url:
-      process.env["DATABASE_URL"] ??
-      "postgresql://postgres.fhtyhqvxwiajoctailir:replace-with-password@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&uselibpqcompat=true",
+    url: requireEnv("DATABASE_URL"),
   },
 });

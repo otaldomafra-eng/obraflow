@@ -19,9 +19,15 @@ if (existsSync(envPath)) {
   loadEnvFile(envPath);
 }
 
-const connectionString =
-  process.env.DATABASE_URL ??
-  "postgresql://postgres.fhtyhqvxwiajoctailir:replace-with-password@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&uselibpqcompat=true";
+const connectionString = (() => {
+  const value = process.env.DATABASE_URL;
+  if (!value) {
+    throw new Error(
+      "Missing required environment variable: DATABASE_URL. Check .env or your hosting environment configuration.",
+    );
+  }
+  return value;
+})();
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),

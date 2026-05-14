@@ -11,21 +11,29 @@ if (existsSync(envPath)) {
   loadEnvFile(envPath);
 }
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(
+      `Missing required environment variable: ${name}. Check .env or your hosting environment configuration.`,
+    );
+  }
+  return value;
+}
 
 const log: NonNullable<ConstructorParameters<typeof PrismaClient>[0]>["log"] =
   process.env.NODE_ENV === "development"
     ? ["query", "error", "warn"]
     : ["error"];
 
-const connectionString =
-  process.env.DATABASE_URL ??
-  "postgresql://postgres.fhtyhqvxwiajoctailir:replace-with-password@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&uselibpqcompat=true";
+const connectionString = requireEnv("DATABASE_URL");
 
 const prismaOptions: ConstructorParameters<typeof PrismaClient>[0] = {
   adapter: new PrismaPg({ connectionString }),
   log,
 };
+
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 export const prisma =
   globalForPrisma.prisma ?? new PrismaClient(prismaOptions);
