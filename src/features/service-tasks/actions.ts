@@ -111,9 +111,20 @@ export async function deleteServiceTask(
 ) {
   await assertTaskBelongsToService(tenantId, serviceId, taskId);
 
-  return prisma.serviceTask.delete({
-    where: { tenantId_id: { tenantId, id: taskId } },
-  });
+  try {
+    return await prisma.serviceTask.delete({
+      where: { tenantId_id: { tenantId, id: taskId } },
+    });
+  } catch (error) {
+    const prismaError = error as { code?: string; message?: string };
+    if (prismaError.code === "P2003") {
+      throw new Error(
+        "Esta tarefa possui registros de trabalho vinculados e não pode ser deletada. " +
+        "Altere o status para CANCELADO se deseja encerrá-la.",
+      );
+    }
+    throw error;
+  }
 }
 
 export async function listServiceTasks(tenantId: string, serviceId: string) {

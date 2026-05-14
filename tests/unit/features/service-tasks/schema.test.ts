@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { createServiceTaskSchema, updateServiceTaskSchema } from "@/features/service-tasks/actions";
+import {
+  createServiceTaskSchema,
+  updateServiceTaskSchema,
+  deleteServiceTask,
+} from "@/features/service-tasks/actions";
 
 describe("service task actions schema validation", () => {
   it("validates createServiceTask input with required fields", () => {
@@ -98,6 +102,12 @@ describe("service task actions schema validation", () => {
 
   it("validates updateServiceTask with CANCELED status", () => {
     expect(updateServiceTaskSchema.parse({ status: "CANCELED" }).status).toBe("CANCELED");
+  });
+});
+
+describe("deleteServiceTask exists and is exported", () => {
+  it("is a function", () => {
+    expect(typeof deleteServiceTask).toBe("function");
   });
 });
 

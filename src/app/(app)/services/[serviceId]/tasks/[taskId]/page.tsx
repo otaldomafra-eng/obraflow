@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
-import { getServiceTask } from "@/features/service-tasks/actions";
+import { getServiceTask, deleteServiceTask } from "@/features/service-tasks/actions";
+import { DeleteTaskForm } from "@/features/service-tasks/DeleteTaskForm";
 import { requireTenantId } from "@/server/auth/tenant";
 
 const statusLabels: Record<string, string> = {
@@ -30,6 +31,13 @@ export default async function ServiceTaskDetailPage({
 
   if (!task) {
     notFound();
+  }
+
+  async function handleDelete() {
+    "use server";
+
+    await deleteServiceTask(tenantId, serviceId, taskId);
+    redirect(`/services/${serviceId}`);
   }
 
   return (
@@ -76,25 +84,28 @@ export default async function ServiceTaskDetailPage({
         </dl>
       </div>
 
-      <div className="flex gap-4">
-        <Link
-          href={`/services/${serviceId}`}
-          className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
-        >
-          ← Voltar ao serviço
-        </Link>
-        <Link
-          href={`/services/${serviceId}/tasks/${taskId}/edit`}
-          className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
-        >
-          Editar tarefa →
-        </Link>
-        <Link
-          href={`/services/${serviceId}/tasks/${taskId}/work-logs`}
-          className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
-        >
-          Registros de trabalho ({task._count.workLogs})
-        </Link>
+      <div className="flex items-center justify-between">
+        <div className="flex gap-4">
+          <Link
+            href={`/services/${serviceId}`}
+            className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
+          >
+            ← Voltar ao serviço
+          </Link>
+          <Link
+            href={`/services/${serviceId}/tasks/${taskId}/edit`}
+            className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
+          >
+            Editar tarefa →
+          </Link>
+          <Link
+            href={`/services/${serviceId}/tasks/${taskId}/work-logs`}
+            className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
+          >
+            Registros de trabalho ({task._count.workLogs})
+          </Link>
+        </div>
+        <DeleteTaskForm action={handleDelete} workLogCount={task._count.workLogs} />
       </div>
     </div>
   );
