@@ -6,16 +6,14 @@ interface DeleteTaskFormProps {
 }
 
 export function DeleteTaskForm({ action, workLogCount }: DeleteTaskFormProps) {
+  const hasWorkLogs = workLogCount > 0;
+
   return (
     <form
       action={action}
       onSubmit={(e) => {
-        if (workLogCount > 0) {
+        if (hasWorkLogs) {
           e.preventDefault();
-          window.alert(
-            "Esta tarefa possui registros de trabalho e não pode ser deletada. " +
-            "Altere o status para CANCELADO se deseja encerrá-la.",
-          );
           return;
         }
         const confirmed = window.confirm(
@@ -26,12 +24,20 @@ export function DeleteTaskForm({ action, workLogCount }: DeleteTaskFormProps) {
         }
       }}
     >
-      <button
-        type="submit"
-        className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
-      >
-        Deletar tarefa
-      </button>
+      <div className="flex flex-col items-end gap-1">
+        {hasWorkLogs && (
+          <span className="text-xs text-zinc-500">
+            Tarefas com histórico não podem ser deletadas. Altere o status para CANCELADO.
+          </span>
+        )}
+        <button
+          type="submit"
+          disabled={hasWorkLogs}
+          className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-red-50"
+        >
+          {hasWorkLogs ? "Deleção bloqueada" : "Deletar tarefa"}
+        </button>
+      </div>
     </form>
   );
 }

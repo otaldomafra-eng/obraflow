@@ -17,7 +17,12 @@ const createServiceTaskSchema = z.object({
   dueDate: z.string().optional().transform((v) => (v ? new Date(v) : null)),
 });
 
-const updateServiceTaskSchema = createServiceTaskSchema.partial();
+const updateServiceTaskSchema = z.object({
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  status: z.enum(taskStatuses).optional(),
+  dueDate: z.string().optional().transform((v) => (v ? new Date(v) : null)),
+});
 
 export type CreateServiceTaskInput = z.input<typeof createServiceTaskSchema>;
 export type UpdateServiceTaskInput = z.input<typeof updateServiceTaskSchema>;
@@ -85,13 +90,8 @@ export async function updateServiceTask(
 
   await assertTaskBelongsToService(tenantId, serviceId, taskId);
 
-  if (data.serviceId !== undefined && data.serviceId !== serviceId) {
-    await assertServiceBelongsToTenant(tenantId, data.serviceId);
-  }
-
   const updateData: Record<string, unknown> = {};
 
-  if (data.serviceId !== undefined) updateData.serviceId = data.serviceId;
   if (data.title !== undefined) updateData.title = data.title;
   if (data.description !== undefined)
     updateData.description = data.description ?? null;

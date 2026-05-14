@@ -105,6 +105,40 @@ describe("service task actions schema validation", () => {
   });
 });
 
+describe("updateServiceTask hardening", () => {
+  it("strips serviceId from update payload (cannot move task to another service)", () => {
+    const result = updateServiceTaskSchema.parse({
+      serviceId: "other-service",
+      title: "Novo Título",
+    } as Record<string, unknown>);
+    expect("serviceId" in result).toBe(false);
+    expect(result.title).toBe("Novo Título");
+  });
+
+  it("accepts only title, description, status and dueDate", () => {
+    const result = updateServiceTaskSchema.parse({
+      title: "Apenas título",
+      description: "Desc",
+      status: "DELIVERED",
+      dueDate: "2025-06-01",
+    });
+    expect(result.title).toBe("Apenas título");
+    expect(result.description).toBe("Desc");
+    expect(result.status).toBe("DELIVERED");
+    expect(result.dueDate).toEqual(new Date("2025-06-01"));
+  });
+
+  it("ignores unknown fields by stripping them", () => {
+    const result = updateServiceTaskSchema.parse({
+      title: "Teste",
+      serviceId: "should-be-stripped",
+      extraField: "ignored",
+    } as Record<string, unknown>);
+    expect("serviceId" in result).toBe(false);
+    expect("extraField" in result).toBe(false);
+  });
+});
+
 describe("deleteServiceTask exists and is exported", () => {
   it("is a function", () => {
     expect(typeof deleteServiceTask).toBe("function");
