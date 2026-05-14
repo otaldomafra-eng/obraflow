@@ -15,7 +15,7 @@ export default async function ServiceTaskEditPage({
   const tenantId = await requireTenantId();
   const { serviceId, taskId } = await params;
 
-  const task = await getServiceTask(tenantId, taskId);
+  const task = await getServiceTask(tenantId, serviceId, taskId);
 
   if (!task) {
     notFound();
@@ -24,7 +24,7 @@ export default async function ServiceTaskEditPage({
   async function handleUpdate(formData: FormData) {
     "use server";
 
-    await updateServiceTask(tenantId, taskId, {
+    await updateServiceTask(tenantId, serviceId, taskId, {
       title: formData.get("title") as string,
       description: (formData.get("description") as string) || undefined,
       status: (formData.get("status") as "PLANNING" | "PRODUCTION" | "DELIVERED" | "CANCELED") || undefined,

@@ -26,7 +26,7 @@ export default async function ServiceTaskDetailPage({
   const tenantId = await requireTenantId();
   const { serviceId, taskId } = await params;
 
-  const task = await getServiceTask(tenantId, taskId);
+  const task = await getServiceTask(tenantId, serviceId, taskId);
 
   if (!task) {
     notFound();
@@ -38,7 +38,7 @@ export default async function ServiceTaskDetailPage({
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{task.title}</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Tarefa do serviço #{serviceId.slice(0, 8)}
+            Tarefa do serviço {serviceId}
           </p>
         </div>
         <span

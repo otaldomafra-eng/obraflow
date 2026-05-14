@@ -54,19 +54,12 @@ describe("service task actions schema validation", () => {
   });
 
   it("rejects missing serviceId", () => {
-    expect(() =>
-      createServiceTaskSchema.parse({
-        title: "Teste",
-      }),
-    ).toThrow();
+    expect(() => createServiceTaskSchema.parse({ title: "Teste" })).toThrow();
   });
 
   it("rejects empty title", () => {
     expect(() =>
-      createServiceTaskSchema.parse({
-        serviceId: "service-123",
-        title: "",
-      }),
+      createServiceTaskSchema.parse({ serviceId: "service-123", title: "" }),
     ).toThrow();
   });
 
@@ -87,37 +80,24 @@ describe("service task actions schema validation", () => {
       "DELIVERED",
       "CANCELED",
     ];
-
     for (const status of statuses) {
       expect(
-        createServiceTaskSchema.parse({
-          serviceId: "service-123",
-          title: "Teste",
-          status,
-        }),
+        createServiceTaskSchema.parse({ serviceId: "s", title: "t", status }),
       ).toBeDefined();
     }
   });
 
   it("validates updateServiceTask input as partial", () => {
-    const result = updateServiceTaskSchema.parse({
-      title: "Novo Título",
-    });
+    const result = updateServiceTaskSchema.parse({ title: "Novo Título" });
     expect(result.title).toBe("Novo Título");
   });
 
   it("validates updateServiceTask with DELIVERED status", () => {
-    const result = updateServiceTaskSchema.parse({
-      status: "DELIVERED",
-    });
-    expect(result.status).toBe("DELIVERED");
+    expect(updateServiceTaskSchema.parse({ status: "DELIVERED" }).status).toBe("DELIVERED");
   });
 
   it("validates updateServiceTask with CANCELED status", () => {
-    const result = updateServiceTaskSchema.parse({
-      status: "CANCELED",
-    });
-    expect(result.status).toBe("CANCELED");
+    expect(updateServiceTaskSchema.parse({ status: "CANCELED" }).status).toBe("CANCELED");
   });
 });
 
@@ -136,14 +116,9 @@ describe("task status labels and colors", () => {
     CANCELED: "Cancelada",
   };
 
-  const validStatuses = ["PLANNING", "PRODUCTION", "DELIVERED", "CANCELED"] as const;
-
-  for (const status of validStatuses) {
-    it(`has a color for ${status}`, () => {
+  for (const status of ["PLANNING", "PRODUCTION", "DELIVERED", "CANCELED"] as const) {
+    it(`has a color and label for ${status}`, () => {
       expect(statusColors[status]).toBeDefined();
-    });
-
-    it(`has a label for ${status}`, () => {
       expect(statusLabels[status]).toBeDefined();
       expect(statusLabels[status].length).toBeGreaterThan(0);
     });
@@ -159,17 +134,15 @@ describe("task status labels and colors", () => {
 });
 
 describe("task route pattern", () => {
-  it("generates correct detail URL pattern for a task", () => {
-    const serviceId = "service-abc123";
-    const taskId = "task-xyz789";
-    const href = `/services/${serviceId}/tasks/${taskId}`;
-    expect(href).toBe("/services/service-abc123/tasks/task-xyz789");
+  it("generates correct detail URL", () => {
+    expect(`/services/service-abc123/tasks/task-xyz789`).toBe(
+      `/services/${"service-abc123"}/tasks/${"task-xyz789"}`,
+    );
   });
 
-  it("generates correct edit URL pattern for a task", () => {
-    const serviceId = "service-abc123";
-    const taskId = "task-xyz789";
-    const href = `/services/${serviceId}/tasks/${taskId}/edit`;
-    expect(href).toBe("/services/service-abc123/tasks/task-xyz789/edit");
+  it("generates correct edit URL", () => {
+    expect(`/services/service-abc123/tasks/task-xyz789/edit`).toBe(
+      `/services/${"service-abc123"}/tasks/${"task-xyz789"}/edit`,
+    );
   });
 });

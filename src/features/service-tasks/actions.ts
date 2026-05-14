@@ -38,18 +38,19 @@ async function assertServiceBelongsToTenant(
   }
 }
 
-async function assertTaskBelongsToTenant(
+async function assertTaskBelongsToService(
   tenantId: string,
+  serviceId: string,
   taskId: string,
 ): Promise<void> {
-  const task = await prisma.serviceTask.findUnique({
-    where: { tenantId_id: { tenantId, id: taskId } },
+  const task = await prisma.serviceTask.findFirst({
+    where: { tenantId, serviceId, id: taskId },
     select: { id: true },
   });
 
   if (!task) {
     throw new Error(
-      `Task ${taskId} does not belong to tenant ${tenantId}`,
+      `Task ${taskId} does not belong to service ${serviceId} in tenant ${tenantId}`,
     );
   }
 }
@@ -76,12 +77,15 @@ export async function createServiceTask(
 
 export async function updateServiceTask(
   tenantId: string,
+  serviceId: string,
   taskId: string,
   input: UpdateServiceTaskInput,
 ) {
   const data = updateServiceTaskSchema.parse(input);
 
-  if (data.serviceId !== undefined) {
+  await assertTaskBelongsToService(tenantId, serviceId, taskId);
+
+  if (data.serviceId !== undefined && data.serviceId !== serviceId) {
     await assertServiceBelongsToTenant(tenantId, data.serviceId);
   }
 
@@ -100,8 +104,12 @@ export async function updateServiceTask(
   });
 }
 
-export async function deleteServiceTask(tenantId: string, taskId: string) {
-  await assertTaskBelongsToTenant(tenantId, taskId);
+export async function deleteServiceTask(
+  tenantId: string,
+  serviceId: string,
+  taskId: string,
+) {
+  await assertTaskBelongsToService(tenantId, serviceId, taskId);
 
   return prisma.serviceTask.delete({
     where: { tenantId_id: { tenantId, id: taskId } },
@@ -120,11 +128,13 @@ export async function listServiceTasks(tenantId: string, serviceId: string) {
   });
 }
 
-export async function getServiceTask(tenantId: string, taskId: string) {
-  await assertTaskBelongsToTenant(tenantId, taskId);
-
-  return prisma.serviceTask.findUnique({
-    where: { tenantId_id: { tenantId, id: taskId } },
+export async function getServiceTask(
+  tenantId: string,
+  serviceId: string,
+  taskId: string,
+) {
+  return prisma.serviceTask.findFirst({
+    where: { tenantId, serviceId, id: taskId },
     include: {
       _count: { select: { workLogs: true } },
     },
