@@ -1,3 +1,7 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { loadEnvFile } from "node:process";
+
 import { PrismaPg } from "@prisma/adapter-pg";
 import {
   ClientKind,
@@ -9,9 +13,15 @@ import {
   ServiceType,
 } from "@prisma/client";
 
+const envPath = resolve(process.cwd(), ".env");
+
+if (existsSync(envPath)) {
+  loadEnvFile(envPath);
+}
+
 const connectionString =
   process.env.DATABASE_URL ??
-  "postgresql://obraflow:obraflow@localhost:55432/obraflow";
+  "postgresql://postgres:replace-with-password@db.fhtyhqvxwiajoctailir.supabase.co:5432/postgres?sslmode=require&uselibpqcompat=true";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),

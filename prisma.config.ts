@@ -1,4 +1,14 @@
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { loadEnvFile } from "node:process";
+
 import { defineConfig } from "prisma/config";
+
+const envPath = resolve(process.cwd(), ".env");
+
+if (existsSync(envPath)) {
+  loadEnvFile(envPath);
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -9,6 +19,6 @@ export default defineConfig({
   datasource: {
     url:
       process.env["DATABASE_URL"] ??
-      "postgresql://obraflow:obraflow@localhost:55432/obraflow",
+      "postgresql://postgres:replace-with-password@db.fhtyhqvxwiajoctailir.supabase.co:5432/postgres?sslmode=require&uselibpqcompat=true",
   },
 });

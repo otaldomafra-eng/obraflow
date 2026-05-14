@@ -63,10 +63,10 @@ export default async function ServiceDetailPage({
             <div>
               <dt className="text-sm font-medium text-zinc-500">Cliente</dt>
               <dd className="text-sm text-zinc-900">
-<Link
-                     href={`/properties/${service.property?.id}`}
-                     className="hover:underline"
-                   >
+                <Link
+                  href={`/clients/${service.client.id}`}
+                  className="hover:underline"
+                >
                   {service.client.name}
                 </Link>
               </dd>
@@ -75,12 +75,7 @@ export default async function ServiceDetailPage({
               <div>
                 <dt className="text-sm font-medium text-zinc-500">Imóvel</dt>
                 <dd className="text-sm text-zinc-900">
-                  <Link
-                    href={`/clients/${service.client.id}`}
-                    className="hover:underline"
-                  >
-                    {service.property.name}
-                  </Link>
+                  {service.property.name}
                   {service.property.address && (
                     <span className="text-zinc-400"> - {service.property.address}</span>
                   )}

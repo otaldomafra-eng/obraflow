@@ -124,29 +124,53 @@ export async function updateService(
   input: UpdateServiceInput,
 ) {
   const data = updateServiceSchema.parse(input);
+  let existingService:
+    | {
+        clientId: string;
+        propertyId: string | null;
+      }
+    | null
+    | undefined;
+
+  async function getExistingService() {
+    existingService ??= await prisma.service.findUnique({
+      where: { tenantId_id: { tenantId, id: serviceId } },
+      select: { clientId: true, propertyId: true },
+    });
+
+    if (!existingService) {
+      throw new Error(
+        `Service ${serviceId} does not belong to tenant ${tenantId}`,
+      );
+    }
+
+    return existingService;
+  }
 
   if (data.clientId !== undefined) {
     await assertClientBelongsToTenant(tenantId, data.clientId);
   }
 
-  if (data.propertyId !== undefined && data.propertyId !== null) {
-    const clientId =
-      data.clientId ??
-      (
-        await prisma.service.findUnique({
-          where: { tenantId_id: { tenantId, id: serviceId } },
-          select: { clientId: true },
-        })
-      )?.clientId;
+  const needsExistingService =
+    (data.propertyId !== undefined &&
+      data.propertyId !== null &&
+      data.clientId === undefined) ||
+    (data.clientId !== undefined && data.propertyId === undefined);
 
-    if (!clientId) {
-      throw new Error("Cannot resolve client for property validation");
-    }
+  const service = needsExistingService ? await getExistingService() : null;
+  const clientId = data.clientId ?? service?.clientId;
+  const propertyId =
+    data.propertyId !== undefined
+      ? data.propertyId
+      : data.clientId !== undefined
+        ? service?.propertyId
+        : undefined;
 
+  if (propertyId !== undefined && propertyId !== null) {
     await assertPropertyBelongsToTenantAndClient(
       tenantId,
-      clientId,
-      data.propertyId,
+      clientId ?? (await getExistingService()).clientId,
+      propertyId,
     );
   }
 

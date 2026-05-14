@@ -20,10 +20,12 @@ Create a local environment file:
 cp .env.example .env
 ```
 
+Set `DATABASE_URL` in `.env` to a Supabase PostgreSQL connection string before
+running database commands or flows that read application data.
+
 Run the development server:
 
 ```bash
-pnpm db:setup
 pnpm dev
 ```
 
@@ -40,8 +42,17 @@ pnpm build
 
 ## Database
 
-Start the local PostgreSQL container, wait for readiness, apply migrations, and
-seed the demo tenant:
+ObraFlow uses PostgreSQL through Supabase for development and test data. Create a
+Supabase project for non-production work, then set `DATABASE_URL` in `.env`.
+
+Use the direct database connection string for migrations and local development:
+
+```bash
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.fhtyhqvxwiajoctailir.supabase.co:5432/postgres?sslmode=require&uselibpqcompat=true"
+```
+
+After the environment is configured, generate Prisma Client, apply migrations,
+and seed the demo tenant:
 
 ```bash
 pnpm db:setup
@@ -50,8 +61,6 @@ pnpm db:setup
 Individual commands are also available:
 
 ```bash
-pnpm db:up
-pnpm db:wait
 pnpm db:generate
 pnpm db:migrate
 pnpm db:deploy
@@ -62,7 +71,9 @@ pnpm db:seed
 
 ### Prerequisites
 
-E2E tests use the Docker PostgreSQL service on `localhost:55432`.
+E2E tests use the Supabase database configured by `DATABASE_URL`. Use a dedicated
+development/test Supabase project because migrations and seed data are applied
+outside production.
 
 ### Run
 
@@ -79,6 +90,6 @@ pnpm test:e2e
 ```
 
 The `webServer` in `playwright.config.ts` automatically starts `pnpm dev`, so the dev server does not need to be started beforehand.
-It also runs `pnpm db:setup` first, so the demo tenant and login user are recreated before the browser tests run.
+Run `pnpm db:setup` manually when migrations or seed data need to be refreshed.
 
 > **Note:** E2E tests are excluded from `pnpm test` — only unit and integration tests run there.
