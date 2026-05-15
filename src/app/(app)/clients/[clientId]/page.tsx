@@ -45,49 +45,85 @@ export default async function ClientDetailPage({
           <span className="text-zinc-900">{client.name}</span>
         </div>
         <h1 className="mt-1 text-2xl font-bold tracking-tight">{client.name}</h1>
-        <p className="mt-1 text-sm text-zinc-500">
-          {client.kind === "COMPANY" ? "Pessoa Jurídica" : "Pessoa Física"}
-          {client.document && ` · ${client.document}`}
-        </p>
+        <div className="mt-1 flex items-center gap-3 text-sm text-zinc-500">
+          <span>
+            {client.kind === "COMPANY" ? "Pessoa Jurídica" : "Pessoa Física"}
+          </span>
+          {client.document && (
+            <>
+              <span className="text-zinc-300">|</span>
+              <span className="font-mono text-xs">{client.document}</span>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border bg-white p-6">
-          <h2 className="mb-4 text-base font-semibold">Contato</h2>
-          <dl className="space-y-3 text-sm">
-            {client.email && (
-              <div className="flex justify-between">
-                <dt className="text-zinc-500">Email</dt>
-                <dd className="text-zinc-900">{client.email}</dd>
-              </div>
-            )}
-            {client.phone && (
-              <div className="flex justify-between">
-                <dt className="text-zinc-500">Telefone</dt>
-                <dd className="text-zinc-900">{client.phone}</dd>
-              </div>
-            )}
-          </dl>
+        <div className="space-y-6">
+          <div className="rounded-xl border bg-white p-6">
+            <h2 className="mb-4 text-base font-semibold">Contato</h2>
+            <dl className="space-y-3 text-sm">
+              {client.email && (
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">Email</dt>
+                  <dd className="text-zinc-900">{client.email}</dd>
+                </div>
+              )}
+              {client.phone && (
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">Telefone</dt>
+                  <dd className="text-zinc-900">{client.phone}</dd>
+                </div>
+              )}
+              {!client.email && !client.phone && (
+                <p className="text-zinc-400">Nenhum contato registrado.</p>
+              )}
+            </dl>
+          </div>
+
+          {client.notes && (
+            <div className="rounded-xl border bg-white p-6">
+              <h2 className="mb-4 text-base font-semibold">Observações</h2>
+              <p className="whitespace-pre-wrap text-sm text-zinc-700">
+                {client.notes}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="rounded-xl border bg-white p-6">
-          <h2 className="mb-4 text-base font-semibold">Imóveis</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-base font-semibold">Imóveis</h2>
+            <Link
+              href={`/properties?clientId=${client.id}`}
+              className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
+            >
+              Ver todos
+            </Link>
+          </div>
           {client.properties.length === 0 ? (
             <p className="text-sm text-zinc-400">Nenhum imóvel vinculado.</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {client.properties.map((property) => (
                 <li key={property.id} className="text-sm">
-                  <span className="font-medium text-zinc-900">{property.name}</span>
+                  <div className="font-medium text-zinc-900">
+                    {property.name}
+                  </div>
                   {property.city && (
-                    <span className="text-zinc-500">
-                      {" "}
-                      · {property.city}/{property.state}
-                    </span>
+                    <div className="text-xs text-zinc-500">
+                      {property.city}
+                      {property.state && `/${property.state}`}
+                    </div>
                   )}
-                  <span className="ml-2 text-xs text-zinc-400">
+                  {property.address && (
+                    <div className="text-xs text-zinc-400">
+                      {property.address}
+                    </div>
+                  )}
+                  <div className="mt-0.5 text-xs text-zinc-400">
                     {property._count.services} serviço(s)
-                  </span>
+                  </div>
                 </li>
               ))}
             </ul>

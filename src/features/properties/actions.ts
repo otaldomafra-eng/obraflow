@@ -2,7 +2,23 @@ import { z } from "zod";
 
 import { prisma } from "@/server/db/client";
 
-const createPropertySchema = z.object({
+async function assertClientBelongsToTenant(
+  tenantId: string,
+  clientId: string,
+): Promise<void> {
+  const client = await prisma.client.findUnique({
+    where: { tenantId_id: { tenantId, id: clientId } },
+    select: { id: true },
+  });
+
+  if (!client) {
+    throw new Error(
+      `Client ${clientId} does not belong to tenant ${tenantId}`,
+    );
+  }
+}
+
+export const createPropertySchema = z.object({
   clientId: z.string().min(1),
   name: z.string().min(1),
   address: z.string().optional(),
@@ -12,9 +28,9 @@ const createPropertySchema = z.object({
   notes: z.string().optional(),
 });
 
-const updatePropertySchema = createPropertySchema.partial();
+export const updatePropertySchema = createPropertySchema.partial();
 
-const listPropertiesSchema = z.object({
+export const listPropertiesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().optional(),
@@ -27,6 +43,8 @@ export type ListPropertiesInput = z.input<typeof listPropertiesSchema>;
 
 export async function createProperty(tenantId: string, input: CreatePropertyInput) {
   const data = createPropertySchema.parse(input);
+
+  await assertClientBelongsToTenant(tenantId, data.clientId);
 
   return prisma.property.create({
     data: {
@@ -97,5 +115,5 @@ export async function listProperties(
     prisma.property.count({ where }),
   ]);
 
-  return { items, total, page, pageSize };
+  return { items, total, page, pageSize, search, clientId };
 }
