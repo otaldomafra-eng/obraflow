@@ -79,16 +79,24 @@ export default async function ServiceDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{service.title}</h1>
           <p className="mt-1 text-sm text-zinc-500">
             {typeLabels[service.type] || service.type}
           </p>
         </div>
-        <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
-          {statusLabels[service.status] || service.status}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
+            {statusLabels[service.status] || service.status}
+          </span>
+          <Link
+            href={`/services/${service.id}/edit`}
+            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            Editar
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -111,7 +119,7 @@ export default async function ServiceDetailPage({
                 <dt className="text-sm font-medium text-zinc-500">Imóvel</dt>
                 <dd className="text-sm text-zinc-900">
                   <Link
-                    href={`/properties?clientId=${service.client.id}`}
+                    href={`/properties/${service.property.id}`}
                     className="hover:underline"
                   >
                     {service.property.name}

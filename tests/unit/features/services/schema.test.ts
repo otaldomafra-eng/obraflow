@@ -91,6 +91,42 @@ describe("service actions schema validation", () => {
     expect(result.title).toBe("Novo Título");
   });
 
+  it("updateService accepts null for optional fields", () => {
+    const result = updateServiceSchema.parse({
+      description: null,
+      startDate: null,
+      dueDate: null,
+    });
+    expect(result.description).toBeNull();
+    expect(result.startDate).toBeNull();
+    expect(result.dueDate).toBeNull();
+  });
+
+  it("updateService rejects null for title", () => {
+    expect(() =>
+      updateServiceSchema.parse({ title: null }),
+    ).toThrow();
+  });
+
+  it("updateService rejects null for clientId", () => {
+    expect(() =>
+      updateServiceSchema.parse({ clientId: null }),
+    ).toThrow();
+  });
+
+  it("updateService startDate transforms null and empty string to null", () => {
+    const withNull = updateServiceSchema.parse({ startDate: null });
+    expect(withNull.startDate).toBeNull();
+
+    const withEmpty = updateServiceSchema.parse({ startDate: "" });
+    expect(withEmpty.startDate).toBeNull();
+  });
+
+  it("updateService startDate without input stays undefined", () => {
+    const result = updateServiceSchema.parse({ title: "test" });
+    expect(result.startDate).toBeUndefined();
+  });
+
   it("validates listServices input with pagination", () => {
     const result = listServicesSchema.parse({ page: 2, pageSize: 50, status: "NEW" });
     expect(result.page).toBe(2);
