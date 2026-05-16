@@ -8,6 +8,7 @@ const { prismaMock } = vi.hoisted(() => ({
     property: {
       create: vi.fn(),
       update: vi.fn(),
+      findUnique: vi.fn(),
     },
   },
 }));
@@ -16,7 +17,7 @@ vi.mock("@/server/db/client", () => ({
   prisma: prismaMock,
 }));
 
-import { createProperty, updateProperty } from "@/features/properties/actions";
+import { createProperty, getPropertyDetail, updateProperty } from "@/features/properties/actions";
 
 describe("property actions ownership validation", () => {
   beforeEach(() => {
@@ -88,6 +89,68 @@ describe("property actions ownership validation", () => {
     );
 
     expect(prismaMock.property.update).not.toHaveBeenCalled();
+  });
+
+  it("getPropertyDetail returns property with client and services", async () => {
+    const mockResult = {
+      id: "prop-1",
+      name: "Casa Teste",
+      client: { id: "client-1", name: "Joao", email: null, phone: null },
+      services: [{ id: "svc-1", title: "Proj", status: "NEW" }],
+    };
+    prismaMock.property.findUnique.mockResolvedValue(mockResult);
+
+    const result = await getPropertyDetail("tenant-1", "prop-1");
+
+    expect(result).toEqual(mockResult);
+    expect(prismaMock.property.findUnique).toHaveBeenCalledWith({
+      where: { tenantId_id: { tenantId: "tenant-1", id: "prop-1" } },
+      include: {
+        client: { select: { id: true, name: true, email: true, phone: true } },
+        services: { orderBy: { createdAt: "desc" }, take: 20 },
+      },
+    });
+  });
+
+  it("updateProperty clears optional fields when null is passed", async () => {
+    prismaMock.client.findUnique.mockClear();
+    prismaMock.property.update.mockResolvedValue({
+      id: "prop-1",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      name: "Casa",
+      address: null,
+      city: null,
+      state: null,
+      postalCode: null,
+      notes: null,
+    });
+
+    const result = await updateProperty("tenant-1", "prop-1", {
+      name: "Casa",
+      address: null,
+      city: null,
+      state: null,
+      postalCode: null,
+      notes: null,
+    });
+
+    expect(result.address).toBeNull();
+    expect(result.city).toBeNull();
+    expect(result.state).toBeNull();
+    expect(result.postalCode).toBeNull();
+    expect(result.notes).toBeNull();
+    expect(prismaMock.property.update).toHaveBeenCalledWith({
+      where: { tenantId_id: { tenantId: "tenant-1", id: "prop-1" } },
+      data: {
+        name: "Casa",
+        address: null,
+        city: null,
+        state: null,
+        postalCode: null,
+        notes: null,
+      },
+    });
   });
 
   it("updateProperty permite clientId válido do mesmo tenant", async () => {

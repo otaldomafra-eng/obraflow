@@ -140,6 +140,78 @@ describe("service actions ownership validation", () => {
     expect(prismaMock.property.findUnique).not.toHaveBeenCalled();
   });
 
+  it("updateService clears description when null is passed", async () => {
+    prismaMock.client.findUnique.mockClear();
+    prismaMock.property.findUnique.mockClear();
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      propertyId: null,
+      title: "Serviço",
+      description: null,
+    });
+
+    const result = await updateService("tenant-1", "service-1", {
+      title: "Serviço",
+      description: null,
+    });
+
+    expect(result.description).toBeNull();
+    expect(prismaMock.service.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ description: null }),
+      }),
+    );
+  });
+
+  it("updateService clears startDate and dueDate when null is passed", async () => {
+    prismaMock.client.findUnique.mockClear();
+    prismaMock.property.findUnique.mockClear();
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      title: "Serviço",
+      startDate: null,
+      dueDate: null,
+    });
+
+    const result = await updateService("tenant-1", "service-1", {
+      title: "Serviço",
+      startDate: null,
+      dueDate: null,
+    });
+
+    expect(result.startDate).toBeNull();
+    expect(result.dueDate).toBeNull();
+    expect(prismaMock.service.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ startDate: null, dueDate: null }),
+      }),
+    );
+  });
+
+  it("updateService skips optional fields when not in input", async () => {
+    prismaMock.client.findUnique.mockClear();
+    prismaMock.property.findUnique.mockClear();
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      title: "Só Título",
+    });
+
+    await updateService("tenant-1", "service-1", {
+      title: "Só Título",
+    });
+
+    const callData = prismaMock.service.update.mock.calls[0][0].data;
+    expect(callData).not.toHaveProperty("startDate");
+    expect(callData).not.toHaveProperty("dueDate");
+    expect(callData).not.toHaveProperty("description");
+  });
+
   it("updateService with valid clientId and propertyId change validates both", async () => {
     prismaMock.client.findUnique.mockResolvedValue({ id: "client-3" });
     prismaMock.property.findUnique.mockResolvedValue({ id: "property-3" });

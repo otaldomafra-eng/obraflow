@@ -69,6 +69,33 @@ describe("property actions schema validation", () => {
     expect(result.name).toBeUndefined();
   });
 
+  it("updateProperty accepts null for optional fields", () => {
+    const result = updatePropertySchema.parse({
+      address: null,
+      city: null,
+      state: null,
+      postalCode: null,
+      notes: null,
+    });
+    expect(result.address).toBeNull();
+    expect(result.city).toBeNull();
+    expect(result.state).toBeNull();
+    expect(result.postalCode).toBeNull();
+    expect(result.notes).toBeNull();
+  });
+
+  it("updateProperty rejects null for name", () => {
+    expect(() =>
+      updatePropertySchema.parse({ name: null }),
+    ).toThrow();
+  });
+
+  it("updateProperty rejects null for clientId", () => {
+    expect(() =>
+      updatePropertySchema.parse({ clientId: null }),
+    ).toThrow();
+  });
+
   it("validates listProperties input with pagination", () => {
     const result = listPropertiesSchema.parse({
       page: 2,

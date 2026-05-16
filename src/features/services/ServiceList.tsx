@@ -83,7 +83,16 @@ export function ServiceList({ data }: ServiceListProps) {
                 </Link>
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-600">
-                {service.property?.name || "-"}
+                {service.property ? (
+                  <Link
+                    href={`/properties/${service.property.id}`}
+                    className="hover:underline"
+                  >
+                    {service.property.name}
+                  </Link>
+                ) : (
+                  "-"
+                )}
               </td>
               <td className="whitespace-nowrap px-4 py-3">
                 <span

@@ -65,7 +65,7 @@ export default async function PropertiesPage(props: {
               <tr key={property.id} className="hover:bg-zinc-50">
                 <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-zinc-900">
                   <Link
-                    href={`/clients/${property.client.id}`}
+                    href={`/properties/${property.id}`}
                     className="hover:underline"
                   >
                     {property.name}

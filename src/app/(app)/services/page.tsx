@@ -7,10 +7,13 @@ import { listClients } from "@/features/clients/actions";
 import { listProperties } from "@/features/properties/actions";
 import { requireTenantId } from "@/server/auth/tenant";
 
-export default async function ServicesPage() {
+export default async function ServicesPage(props: {
+  searchParams: Promise<{ search?: string; clientId?: string; propertyId?: string }>;
+}) {
+   const { search, clientId, propertyId } = await props.searchParams;
    const tenantId = await requireTenantId();
    const [servicesData, clientsData, propertiesData] = await Promise.all([
-     listServices(tenantId),
+     listServices(tenantId, { search, clientId, propertyId }),
      listClients(tenantId, { pageSize: 100 }),
      listProperties(tenantId, { pageSize: 100 }),
    ]);

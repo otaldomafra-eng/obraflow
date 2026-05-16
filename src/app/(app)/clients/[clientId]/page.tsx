@@ -107,9 +107,12 @@ export default async function ClientDetailPage({
             <ul className="space-y-3">
               {client.properties.map((property) => (
                 <li key={property.id} className="text-sm">
-                  <div className="font-medium text-zinc-900">
+                  <Link
+                    href={`/properties/${property.id}`}
+                    className="font-medium text-zinc-900 hover:underline"
+                  >
                     {property.name}
-                  </div>
+                  </Link>
                   {property.city && (
                     <div className="text-xs text-zinc-500">
                       {property.city}
