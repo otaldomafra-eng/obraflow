@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 
 import { assertCapability, type Capability } from "@/domain/obraflow/permissions";
 import type { UserRole } from "@/domain/obraflow/types";
@@ -13,10 +14,16 @@ export async function getCurrentTenantId(): Promise<string | null> {
 }
 
 export async function requireTenantId(): Promise<string> {
-  const tenantId = await getCurrentTenantId();
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
+
+  const tenantId = session.user.tenantId;
 
   if (!tenantId) {
-    throw new Error("No tenant context — user is not associated with any tenant");
+    redirect("/sign-in");
   }
 
   return tenantId;
