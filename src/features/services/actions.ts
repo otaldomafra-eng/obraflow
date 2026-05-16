@@ -37,8 +37,23 @@ export const createServiceSchema = z.object({
   dueDate: z.string().optional().transform((v) => (v ? new Date(v) : null)),
 });
 
-export const updateServiceSchema = createServiceSchema.partial().extend({
+export const updateServiceSchema = z.object({
+  clientId: z.string().min(1).optional(),
+  propertyId: z.string().nullable().optional(),
+  title: z.string().min(1).optional(),
+  type: z.enum(serviceTypes).optional(),
   status: z.enum(serviceStatuses).optional(),
+  description: z.string().nullable().optional(),
+  startDate: z.string().nullable().optional().transform((v) => {
+    if (v === null || v === "") return null;
+    if (v === undefined) return undefined;
+    return new Date(v);
+  }),
+  dueDate: z.string().nullable().optional().transform((v) => {
+    if (v === null || v === "") return null;
+    if (v === undefined) return undefined;
+    return new Date(v);
+  }),
 });
 
 export const listServicesSchema = z.object({

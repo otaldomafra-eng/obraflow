@@ -28,7 +28,15 @@ export const createPropertySchema = z.object({
   notes: z.string().optional(),
 });
 
-export const updatePropertySchema = createPropertySchema.partial();
+export const updatePropertySchema = z.object({
+  clientId: z.string().min(1).optional(),
+  name: z.string().min(1).optional(),
+  address: z.string().nullable().optional(),
+  city: z.string().nullable().optional(),
+  state: z.string().nullable().optional(),
+  postalCode: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
 
 export const listPropertiesSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -81,6 +89,19 @@ export async function updateProperty(
       ...(data.state !== undefined && { state: data.state ?? null }),
       ...(data.postalCode !== undefined && { postalCode: data.postalCode ?? null }),
       ...(data.notes !== undefined && { notes: data.notes ?? null }),
+    },
+  });
+}
+
+export async function getPropertyDetail(tenantId: string, propertyId: string) {
+  return prisma.property.findUnique({
+    where: { tenantId_id: { tenantId, id: propertyId } },
+    include: {
+      client: { select: { id: true, name: true, email: true, phone: true } },
+      services: {
+        orderBy: { createdAt: "desc" },
+        take: 20,
+      },
     },
   });
 }
