@@ -54,7 +54,7 @@ vi.mock("@/features/service-tasks/ServiceTaskList", () => ({
 }));
 
 describe("ServiceDetailPage", () => {
-  it("links the client to its detail page and renders property as text", async () => {
+  it("links the client to its detail page and property to the properties list filtered by client", async () => {
     render(
       await ServiceDetailPage({
         params: Promise.resolve({ serviceId: "service-1" }),
@@ -65,9 +65,9 @@ describe("ServiceDetailPage", () => {
       "href",
       "/clients/client-1",
     );
-    expect(screen.getByText("Imovel Teste")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: /Imovel Teste/ }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Imovel Teste" })).toHaveAttribute(
+      "href",
+      "/properties?clientId=client-1",
+    );
   });
 });

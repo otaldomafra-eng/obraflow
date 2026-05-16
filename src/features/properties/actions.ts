@@ -67,6 +67,10 @@ export async function updateProperty(
 ) {
   const data = updatePropertySchema.parse(input);
 
+  if (data.clientId !== undefined) {
+    await assertClientBelongsToTenant(tenantId, data.clientId);
+  }
+
   return prisma.property.update({
     where: { tenantId_id: { tenantId, id: propertyId } },
     data: {

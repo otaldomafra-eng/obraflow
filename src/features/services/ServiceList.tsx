@@ -75,7 +75,12 @@ export function ServiceList({ data }: ServiceListProps) {
                 {typeLabels[service.type] || service.type}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-600">
-                {service.client.name}
+                <Link
+                  href={`/clients/${service.client.id}`}
+                  className="hover:underline"
+                >
+                  {service.client.name}
+                </Link>
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-600">
                 {service.property?.name || "-"}
