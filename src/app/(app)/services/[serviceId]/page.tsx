@@ -110,7 +110,12 @@ export default async function ServiceDetailPage({
               <div>
                 <dt className="text-sm font-medium text-zinc-500">Imóvel</dt>
                 <dd className="text-sm text-zinc-900">
-                  {service.property.name}
+                  <Link
+                    href={`/properties?clientId=${service.client.id}`}
+                    className="hover:underline"
+                  >
+                    {service.property.name}
+                  </Link>
                   {service.property.address && (
                     <span className="text-zinc-400"> - {service.property.address}</span>
                   )}
@@ -179,7 +184,7 @@ export default async function ServiceDetailPage({
         </div>
       </div>
 
-{service.client.email && (
+{(service.client.email || service.client.phone) && (
          <div className="rounded-xl border bg-white p-6">
            <h2 className="mb-4 text-base font-semibold">Contato do Cliente</h2>
            <div className="space-y-2 text-sm">

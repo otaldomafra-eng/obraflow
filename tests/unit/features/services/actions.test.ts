@@ -75,4 +75,103 @@ describe("service actions ownership validation", () => {
     });
     expect(prismaMock.service.update).not.toHaveBeenCalled();
   });
+
+  it("updateService without clientId or propertyId skips ownership checks", async () => {
+    prismaMock.client.findUnique.mockClear();
+    prismaMock.property.findUnique.mockClear();
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      title: "Título Atualizado",
+    });
+
+    const result = await updateService("tenant-1", "service-1", {
+      title: "Título Atualizado",
+    });
+
+    expect(result.title).toBe("Título Atualizado");
+    expect(prismaMock.client.findUnique).not.toHaveBeenCalled();
+    expect(prismaMock.property.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("updateService with valid clientId change passes ownership check", async () => {
+    prismaMock.client.findUnique.mockResolvedValue({ id: "client-2" });
+    prismaMock.service.findUnique.mockResolvedValue({
+      clientId: "client-1",
+      propertyId: null,
+    });
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-2",
+      title: "Serviço Transferido",
+    });
+
+    const result = await updateService("tenant-1", "service-1", {
+      clientId: "client-2",
+      title: "Serviço Transferido",
+    });
+
+    expect(result.clientId).toBe("client-2");
+    expect(prismaMock.client.findUnique).toHaveBeenCalledWith({
+      where: { tenantId_id: { tenantId: "tenant-1", id: "client-2" } },
+      select: { id: true },
+    });
+  });
+
+  it("updateService without propertyId does not trigger property ownership check", async () => {
+    prismaMock.client.findUnique.mockResolvedValue({ id: "client-1" });
+    prismaMock.property.findUnique.mockClear();
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      propertyId: null,
+      title: "Sem Imóvel",
+    });
+
+    const result = await updateService("tenant-1", "service-1", {
+      clientId: "client-1",
+      title: "Sem Imóvel",
+    });
+
+    expect(result.title).toBe("Sem Imóvel");
+    expect(prismaMock.property.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("updateService with valid clientId and propertyId change validates both", async () => {
+    prismaMock.client.findUnique.mockResolvedValue({ id: "client-3" });
+    prismaMock.property.findUnique.mockResolvedValue({ id: "property-3" });
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-3",
+      propertyId: "property-3",
+      title: "Reassignado",
+    });
+
+    const result = await updateService("tenant-1", "service-1", {
+      clientId: "client-3",
+      propertyId: "property-3",
+      title: "Reassignado",
+    });
+
+    expect(result.clientId).toBe("client-3");
+    expect(result.propertyId).toBe("property-3");
+    expect(prismaMock.client.findUnique).toHaveBeenCalledWith({
+      where: { tenantId_id: { tenantId: "tenant-1", id: "client-3" } },
+      select: { id: true },
+    });
+    expect(prismaMock.property.findUnique).toHaveBeenCalledWith({
+      where: {
+        tenantId_clientId_id: {
+          tenantId: "tenant-1",
+          clientId: "client-3",
+          id: "property-3",
+        },
+      },
+      select: { id: true },
+    });
+  });
 });
