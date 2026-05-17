@@ -156,6 +156,70 @@ export default async function DashboardPage() {
             </div>
           </div>
 
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-xl border bg-white p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-base font-semibold">Tarefas Pendentes</h2>
+                <span className="text-xs font-medium text-zinc-500">{data.pendingTasks.length}</span>
+              </div>
+              {data.pendingTasks.length === 0 ? (
+                <p className="text-sm text-zinc-400">Nenhuma tarefa pendente.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {data.pendingTasks.map((task) => (
+                    <li key={task.id}>
+                      <Link
+                        href={`/services/${task.serviceId}/tasks/${task.id}`}
+                        className="block rounded-lg px-3 py-2 transition-colors hover:bg-zinc-50"
+                      >
+                        <div className="text-sm font-medium text-zinc-900">
+                          {task.title}
+                        </div>
+                        <div className="text-xs text-zinc-500">
+                          {task.serviceTitle}
+                          {task.dueDate && (
+                            <> &mdash; {new Date(task.dueDate).toLocaleDateString("pt-BR")}</>
+                          )}
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="rounded-xl border bg-white p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-base font-semibold">Tarefas Atrasadas</h2>
+                <span className="text-xs font-medium text-red-600">{data.overdueTasks.length}</span>
+              </div>
+              {data.overdueTasks.length === 0 ? (
+                <p className="text-sm text-zinc-400">Nenhuma tarefa atrasada.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {data.overdueTasks.map((task) => (
+                    <li key={task.id}>
+                      <Link
+                        href={`/services/${task.serviceId}/tasks/${task.id}`}
+                        className="block rounded-lg px-3 py-2 transition-colors hover:bg-red-50"
+                      >
+                        <div className="text-sm font-medium text-zinc-900">
+                          {task.title}
+                        </div>
+                        <div className="text-xs text-red-500">
+                          {task.serviceTitle}
+                          {task.dueDate && (
+                            <> &mdash; Venceu {new Date(task.dueDate).toLocaleDateString("pt-BR")}</>
+                          )}
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
           <div className="rounded-xl border bg-white p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-base font-semibold">Serviços Recentes</h2>
