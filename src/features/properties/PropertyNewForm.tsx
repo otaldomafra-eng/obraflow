@@ -1,19 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface PropertyNewFormProps {
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<{ redirectUrl?: string } | void>;
   clients: { id: string; name: string }[];
   initialClientId?: string;
 }
 
 export function PropertyNewForm({ action, clients, initialClientId }: PropertyNewFormProps) {
+  const router = useRouter();
   const [selectedClientId, setSelectedClientId] = useState(initialClientId ?? "");
+  const [state, formAction, isPending] = useActionState(
+    async (_prev: unknown, formData: FormData) => {
+      const result = await action(formData);
+      return result ?? null;
+    },
+    null as { redirectUrl?: string } | null,
+  );
+
+  useEffect(() => {
+    if (state?.redirectUrl) {
+      router.push(state.redirectUrl);
+    }
+  }, [state, router]);
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={formAction} className="space-y-4">
+      {isPending && (
+        <div className="text-sm text-zinc-500">Salvando...</div>
+      )}
       <div>
         <label htmlFor="clientId" className="block text-sm font-medium text-zinc-700">
           Cliente *

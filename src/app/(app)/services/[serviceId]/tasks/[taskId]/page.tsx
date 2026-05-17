@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { getServiceTask, deleteServiceTask, completeServiceTask, reopenServiceTask } from "@/features/service-tasks/actions";
@@ -38,7 +38,7 @@ export default async function ServiceTaskDetailPage({
     "use server";
 
     await deleteServiceTask(tenantId, serviceId, taskId);
-    redirect(`/services/${serviceId}`);
+    return { redirectUrl: `/services/${serviceId}` };
   }
 
   async function handleComplete() {

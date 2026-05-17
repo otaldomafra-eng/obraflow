@@ -1,6 +1,5 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { ClientForm } from "@/features/clients/ClientForm";
 import { createClient } from "@/features/clients/actions";
@@ -26,7 +25,7 @@ export default async function NewClientPage() {
     });
 
     revalidatePath("/clients");
-    redirect(`/clients/${client.id}`);
+    return { redirectUrl: `/clients/${client.id}` };
   }
 
   return (

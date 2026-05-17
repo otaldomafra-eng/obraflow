@@ -5,6 +5,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import NewClientPage from "@/app/(app)/clients/new/page";
 
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(() => ({ push: vi.fn() })),
+}));
+
 vi.mock("@/server/auth/tenant", () => ({
   requireTenantId: vi.fn(async () => "tenant-1"),
 }));
