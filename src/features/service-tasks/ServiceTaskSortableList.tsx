@@ -144,6 +144,9 @@ export function ServiceTaskSortableList({
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h.008v.008H9V12Zm0-3h.008v.008H9V9Zm3 3h.008v.008H12V12Zm0-3h.008v.008H12V9Zm3 3h.008v.008H15V12Zm0-3h.008v.008H15V9Z" />
           </svg>
           <p className="text-sm text-zinc-400">Nenhuma tarefa criada ainda.</p>
+          <span className="mt-2 text-xs text-zinc-400">
+            Use o formulário abaixo para criar a primeira tarefa.
+          </span>
         </div>
       )}
 

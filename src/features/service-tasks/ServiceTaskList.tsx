@@ -62,6 +62,12 @@ export function ServiceTaskList({ data, serviceId }: ServiceTaskListProps) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h.008v.008H9V12Zm0-3h.008v.008H9V9Zm3 3h.008v.008H12V12Zm0-3h.008v.008H12V9Zm3 3h.008v.008H15V12Zm0-3h.008v.008H15V9Z" />
           </svg>
           <p className="text-sm text-zinc-400">Nenhuma tarefa criada ainda.</p>
+          <Link
+            href={`/services/${serviceId}/tasks/new`}
+            className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          >
+            Nova Tarefa
+          </Link>
         </div>
       )}
     </div>
