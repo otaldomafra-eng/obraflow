@@ -21,6 +21,21 @@ const statusColors: Record<string, string> = {
   CANCELED: "bg-red-50 text-red-700",
 };
 
+const statusLabels: Record<string, string> = {
+  NEW: "Novo",
+  PROPOSAL: "Proposta",
+  AWAITING_ACCEPTANCE: "Aguardando Aceite",
+  CONTRACTED: "Contratado",
+  PLANNING: "Planejamento",
+  PRODUCTION: "Produção",
+  APPROVAL: "Aprovação",
+  WORK: "Em Obra",
+  AWAITING_CLIENT: "Aguardando Cliente",
+  PAUSED: "Pausado",
+  DELIVERED: "Entregue",
+  CANCELED: "Cancelado",
+};
+
 const typeLabels: Record<string, string> = {
   TECHNICAL_PROJECT: "Projeto Técnico",
   REGULARIZATION: "Regularização",
@@ -100,7 +115,7 @@ export function ServiceList({ data }: ServiceListProps) {
                     statusColors[service.status] || "bg-gray-50 text-gray-600"
                   }`}
                 >
-                  {service.status}
+                  {statusLabels[service.status] || service.status}
                 </span>
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-zinc-600">

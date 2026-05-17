@@ -187,17 +187,55 @@ export async function reorderServiceTasks(
   await prisma.$transaction(updates);
 }
 
+export async function completeServiceTask(
+  tenantId: string,
+  serviceId: string,
+  taskId: string,
+) {
+  await assertTaskBelongsToService(tenantId, serviceId, taskId);
+
+  return prisma.serviceTask.update({
+    where: { tenantId_id: { tenantId, id: taskId } },
+    data: { status: "DELIVERED", completedAt: new Date() },
+  });
+}
+
+export async function reopenServiceTask(
+  tenantId: string,
+  serviceId: string,
+  taskId: string,
+) {
+  await assertTaskBelongsToService(tenantId, serviceId, taskId);
+
+  return prisma.serviceTask.update({
+    where: { tenantId_id: { tenantId, id: taskId } },
+    data: { status: "PLANNING", completedAt: null },
+  });
+}
+
 export async function getServiceTask(
   tenantId: string,
   serviceId: string,
   taskId: string,
 ) {
-  return prisma.serviceTask.findFirst({
+  const task = await prisma.serviceTask.findFirst({
     where: { tenantId, serviceId, id: taskId },
     include: {
       _count: { select: { workLogs: true } },
     },
   });
+
+  if (!task) return null;
+
+  const hoursResult = await prisma.workLog.aggregate({
+    where: { tenantId, serviceId, taskId },
+    _sum: { hours: true },
+  });
+
+  return {
+    ...task,
+    totalHours: hoursResult._sum.hours ?? 0,
+  };
 }
 
 export { createServiceTaskSchema, updateServiceTaskSchema };

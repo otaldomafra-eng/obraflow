@@ -33,6 +33,24 @@ const mockData = {
       client: { name: "Cliente B" },
     },
   ],
+  pendingTasks: [
+    {
+      id: "task-1",
+      title: "Fundação",
+      dueDate: new Date("2026-07-01"),
+      serviceId: "svc-1",
+      serviceTitle: "Projeto A",
+    },
+  ],
+  overdueTasks: [
+    {
+      id: "task-2",
+      title: "Pintura",
+      dueDate: new Date("2026-05-01"),
+      serviceId: "svc-2",
+      serviceTitle: "Projeto B",
+    },
+  ],
 };
 
 const emptyData = {
@@ -42,6 +60,8 @@ const emptyData = {
   servicesByStatus: [],
   upcomingDueDates: [],
   recentServices: [],
+  pendingTasks: [],
+  overdueTasks: [],
 };
 
 vi.mock("@/features/dashboard/actions", () => ({
@@ -97,6 +117,16 @@ describe("DashboardPage", () => {
       "href",
       "/services",
     );
+  });
+
+  it("renders pending and overdue tasks", async () => {
+    vi.mocked(getDashboardData).mockResolvedValue(mockData);
+    render(await DashboardPage());
+
+    expect(screen.getByText("Fundação")).toBeInTheDocument();
+    expect(screen.getByText("Pintura")).toBeInTheDocument();
+    expect(screen.getByText("Tarefas Pendentes")).toBeInTheDocument();
+    expect(screen.getByText("Tarefas Atrasadas")).toBeInTheDocument();
   });
 
   it("renders empty state when no data", async () => {

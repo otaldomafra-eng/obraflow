@@ -6,6 +6,21 @@ import { requireTenantId } from "@/server/auth/tenant";
 
 export const dynamic = "force-dynamic";
 
+const statusLabels: Record<string, string> = {
+  NEW: "Novo",
+  PROPOSAL: "Proposta",
+  AWAITING_ACCEPTANCE: "Aguardando Aceite",
+  CONTRACTED: "Contratado",
+  PLANNING: "Planejamento",
+  PRODUCTION: "Produção",
+  APPROVAL: "Aprovação",
+  WORK: "Em Obra",
+  AWAITING_CLIENT: "Aguardando Cliente",
+  PAUSED: "Pausado",
+  DELIVERED: "Entregue",
+  CANCELED: "Cancelado",
+};
+
 export default async function PropertyDetailPage({
   params,
 }: {
@@ -116,7 +131,15 @@ export default async function PropertyDetailPage({
       )}
 
       <div className="rounded-xl border bg-white p-6">
-        <h2 className="mb-4 text-base font-semibold">Serviços Vinculados</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-base font-semibold">Serviços Vinculados</h2>
+          <Link
+            href={`/services/new?clientId=${property.client.id}&propertyId=${property.id}`}
+            className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
+          >
+            Novo
+          </Link>
+        </div>
         {property.services.length === 0 ? (
           <p className="text-sm text-zinc-400">
             Nenhum serviço vinculado a este imóvel.
@@ -132,7 +155,7 @@ export default async function PropertyDetailPage({
                   {service.title}
                 </Link>
                 <span className="ml-2 text-xs text-zinc-400">
-                  {service.status}
+                  {statusLabels[service.status] || service.status}
                 </span>
               </li>
             ))}

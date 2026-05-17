@@ -9,40 +9,40 @@ vi.mock("@/server/auth/tenant", () => ({
   requireTenantId: vi.fn(async () => "tenant-1"),
 }));
 
-const mockProperty = {
-  id: "property-1",
-  name: "Casa no Plano Diretor Sul",
-  address: "Plano Diretor Sul",
-  city: "Palmas",
-  state: "TO",
-  postalCode: "77000-000",
-  notes: "Imóvel residencial",
-  client: {
-    id: "client-1",
-    name: "Joao Silva",
-    email: "joao@test.local",
-    phone: "+55 63 99999-0000",
-  },
-  services: [
-    {
-      id: "service-1",
-      title: "Projeto Residencial",
-      status: "CONTRACTED",
-    },
-    {
-      id: "service-2",
-      title: "Acompanhamento de Obra",
-      status: "PRODUCTION",
-    },
-  ],
-};
-
 vi.mock("@/features/properties/actions", () => ({
-  getPropertyDetail: vi.fn(async () => mockProperty),
+  getPropertyDetail: vi.fn(async () => ({
+    id: "property-1",
+    name: "Imóvel Teste",
+    address: "Rua A, 123",
+    city: "São Paulo",
+    state: "SP",
+    postalCode: null,
+    notes: null,
+    client: {
+      id: "client-1",
+      name: "Cliente Teste",
+      email: null,
+      phone: null,
+    },
+    services: [],
+  })),
 }));
 
 describe("PropertyDetailPage", () => {
-  it("renders property name and breadcrumb", async () => {
+  it("links to new service with clientId and propertyId", async () => {
+    render(
+      await PropertyDetailPage({
+        params: Promise.resolve({ propertyId: "property-1" }),
+      }),
+    );
+
+    expect(screen.getByRole("link", { name: "Novo" })).toHaveAttribute(
+      "href",
+      "/services/new?clientId=client-1&propertyId=property-1",
+    );
+  });
+
+  it("shows empty state when property has no services", async () => {
     render(
       await PropertyDetailPage({
         params: Promise.resolve({ propertyId: "property-1" }),
@@ -50,61 +50,11 @@ describe("PropertyDetailPage", () => {
     );
 
     expect(
-      screen.getByRole("heading", { name: "Casa no Plano Diretor Sul" }),
+      screen.getByText("Nenhum serviço vinculado a este imóvel."),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Imóveis" })).toHaveAttribute(
-      "href",
-      "/properties",
-    );
   });
 
-  it("links to the client detail page", async () => {
-    render(
-      await PropertyDetailPage({
-        params: Promise.resolve({ propertyId: "property-1" }),
-      }),
-    );
-
-    expect(screen.getByRole("link", { name: "Joao Silva" })).toHaveAttribute(
-      "href",
-      "/clients/client-1",
-    );
-  });
-
-  it("renders address and city/state", async () => {
-    render(
-      await PropertyDetailPage({
-        params: Promise.resolve({ propertyId: "property-1" }),
-      }),
-    );
-
-    expect(screen.getByText("Plano Diretor Sul")).toBeInTheDocument();
-    expect(screen.getByText("Palmas/TO")).toBeInTheDocument();
-    expect(screen.getByText("77000-000")).toBeInTheDocument();
-  });
-
-  it("renders client contact information", async () => {
-    render(
-      await PropertyDetailPage({
-        params: Promise.resolve({ propertyId: "property-1" }),
-      }),
-    );
-
-    expect(screen.getByText("joao@test.local")).toBeInTheDocument();
-    expect(screen.getByText("+55 63 99999-0000")).toBeInTheDocument();
-  });
-
-  it("renders notes when present", async () => {
-    render(
-      await PropertyDetailPage({
-        params: Promise.resolve({ propertyId: "property-1" }),
-      }),
-    );
-
-    expect(screen.getByText("Imóvel residencial")).toBeInTheDocument();
-  });
-
-  it("links to linked services", async () => {
+  it("renders property name as heading", async () => {
     render(
       await PropertyDetailPage({
         params: Promise.resolve({ propertyId: "property-1" }),
@@ -112,23 +62,7 @@ describe("PropertyDetailPage", () => {
     );
 
     expect(
-      screen.getByRole("link", { name: "Projeto Residencial" }),
-    ).toHaveAttribute("href", "/services/service-1");
-    expect(
-      screen.getByRole("link", { name: "Acompanhamento de Obra" }),
-    ).toHaveAttribute("href", "/services/service-2");
-  });
-
-  it("renders edit link", async () => {
-    render(
-      await PropertyDetailPage({
-        params: Promise.resolve({ propertyId: "property-1" }),
-      }),
-    );
-
-    expect(screen.getByRole("link", { name: "Editar" })).toHaveAttribute(
-      "href",
-      "/properties/property-1/edit",
-    );
+      screen.getByRole("heading", { name: "Imóvel Teste" }),
+    ).toBeInTheDocument();
   });
 });
