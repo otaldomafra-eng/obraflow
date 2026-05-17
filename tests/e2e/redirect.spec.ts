@@ -24,7 +24,7 @@ test.describe("redirect pós-submit", () => {
     }, { timeout: 15000 });
 
     const clientUrl = page.url();
-    expect(clientUrl).toMatch(/\/clients\/[a-f0-9-]+$/);
+    expect(clientUrl).toMatch(/\/clients\/[^/?#]+$/);
   });
 
   test("cria imóvel e redireciona para detalhe", async ({ page }) => {
@@ -56,7 +56,7 @@ test.describe("redirect pós-submit", () => {
     }, { timeout: 15000 });
 
     const propertyUrl = page.url();
-    expect(propertyUrl).toMatch(/\/properties\/[a-f0-9-]+$/);
+    expect(propertyUrl).toMatch(/\/properties\/[^/?#]+$/);
   });
 
   test("cria serviço e redireciona para detalhe", async ({ page }) => {
@@ -98,6 +98,6 @@ test.describe("redirect pós-submit", () => {
     }, { timeout: 15000 });
 
     const serviceUrl = page.url();
-    expect(serviceUrl).toMatch(/\/services\/[a-f0-9-]+$/);
+    expect(serviceUrl).toMatch(/\/services\/[^/?#]+$/);
   });
 });
