@@ -44,17 +44,27 @@ export default async function ClientDetailPage({
           <span>/</span>
           <span className="text-zinc-900">{client.name}</span>
         </div>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">{client.name}</h1>
-        <div className="mt-1 flex items-center gap-3 text-sm text-zinc-500">
-          <span>
-            {client.kind === "COMPANY" ? "Pessoa Jurídica" : "Pessoa Física"}
-          </span>
-          {client.document && (
-            <>
-              <span className="text-zinc-300">|</span>
-              <span className="font-mono text-xs">{client.document}</span>
-            </>
-          )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{client.name}</h1>
+            <div className="mt-1 flex items-center gap-3 text-sm text-zinc-500">
+              <span>
+                {client.kind === "COMPANY" ? "Pessoa Jurídica" : "Pessoa Física"}
+              </span>
+              {client.document && (
+                <>
+                  <span className="text-zinc-300">|</span>
+                  <span className="font-mono text-xs">{client.document}</span>
+                </>
+              )}
+            </div>
+          </div>
+          <Link
+            href={`/clients/${client.id}/edit`}
+            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            Editar
+          </Link>
         </div>
       </div>
 

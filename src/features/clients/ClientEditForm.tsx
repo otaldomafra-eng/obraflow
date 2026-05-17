@@ -1,10 +1,19 @@
 "use client";
 
-interface ClientFormProps {
+interface ClientEditFormProps {
   action: (formData: FormData) => Promise<void>;
+  clientId: string;
+  defaultValues: {
+    name: string;
+    kind: string;
+    document: string;
+    email: string;
+    phone: string;
+    notes: string;
+  };
 }
 
-export function ClientForm({ action }: ClientFormProps) {
+export function ClientEditForm({ action, clientId, defaultValues }: ClientEditFormProps) {
   return (
     <form action={action} className="space-y-4">
       <div>
@@ -15,6 +24,7 @@ export function ClientForm({ action }: ClientFormProps) {
           id="name"
           name="name"
           required
+          defaultValue={defaultValues.name}
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
         />
       </div>
@@ -26,7 +36,7 @@ export function ClientForm({ action }: ClientFormProps) {
         <select
           id="kind"
           name="kind"
-          defaultValue="PERSON"
+          defaultValue={defaultValues.kind}
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
         >
           <option value="PERSON">Pessoa Física</option>
@@ -41,6 +51,7 @@ export function ClientForm({ action }: ClientFormProps) {
         <input
           id="document"
           name="document"
+          defaultValue={defaultValues.document}
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
         />
       </div>
@@ -53,6 +64,7 @@ export function ClientForm({ action }: ClientFormProps) {
           id="email"
           name="email"
           type="email"
+          defaultValue={defaultValues.email}
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
         />
       </div>
@@ -64,6 +76,7 @@ export function ClientForm({ action }: ClientFormProps) {
         <input
           id="phone"
           name="phone"
+          defaultValue={defaultValues.phone}
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
         />
       </div>
@@ -76,16 +89,25 @@ export function ClientForm({ action }: ClientFormProps) {
           id="notes"
           name="notes"
           rows={3}
+          defaultValue={defaultValues.notes}
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
         />
       </div>
 
-      <button
-        type="submit"
-        className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
-      >
-        Salvar Cliente
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+        >
+          Salvar
+        </button>
+        <a
+          href={`/clients/${clientId}`}
+          className="text-sm text-zinc-500 hover:text-zinc-900"
+        >
+          Cancelar
+        </a>
+      </div>
     </form>
   );
 }
