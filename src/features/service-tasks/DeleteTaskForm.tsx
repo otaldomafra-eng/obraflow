@@ -1,16 +1,33 @@
 "use client";
 
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 interface DeleteTaskFormProps {
-  action: () => Promise<void>;
+  action: (formData: FormData) => Promise<{ redirectUrl?: string } | void>;
   workLogCount: number;
 }
 
 export function DeleteTaskForm({ action, workLogCount }: DeleteTaskFormProps) {
+  const router = useRouter();
   const hasWorkLogs = workLogCount > 0;
+  const [state, formAction, isPending] = useActionState(
+    async (_prev: unknown, formData: FormData) => {
+      const result = await action(formData);
+      return result ?? null;
+    },
+    null as { redirectUrl?: string } | null,
+  );
+
+  useEffect(() => {
+    if (state?.redirectUrl) {
+      router.push(state.redirectUrl);
+    }
+  }, [state, router]);
 
   return (
     <form
-      action={action}
+      action={formAction}
       onSubmit={(e) => {
         if (hasWorkLogs) {
           e.preventDefault();
@@ -32,7 +49,7 @@ export function DeleteTaskForm({ action, workLogCount }: DeleteTaskFormProps) {
         )}
         <button
           type="submit"
-          disabled={hasWorkLogs}
+          disabled={hasWorkLogs || isPending}
           className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-red-50"
         >
           {hasWorkLogs ? "Deleção bloqueada" : "Deletar tarefa"}

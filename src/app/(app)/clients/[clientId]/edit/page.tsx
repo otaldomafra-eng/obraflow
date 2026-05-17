@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { getClientEdit, updateClient } from "@/features/clients/actions";
 import type { UpdateClientInput } from "@/features/clients/actions";
@@ -37,7 +37,7 @@ export default async function ClientEditPage({
     await updateClient(tenantId, clientId, input);
 
     revalidatePath(`/clients/${clientId}`);
-    redirect(`/clients/${clientId}`);
+    return { redirectUrl: `/clients/${clientId}` };
   }
 
   return (

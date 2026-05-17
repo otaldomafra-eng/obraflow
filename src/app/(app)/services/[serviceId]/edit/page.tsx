@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { getServiceDetail, updateService } from "@/features/services/actions";
 import type { UpdateServiceInput } from "@/features/services/actions";
@@ -32,7 +32,7 @@ export default async function ServiceEditPage({
     });
 
     revalidatePath(`/services/${serviceId}`);
-    redirect(`/services/${serviceId}`);
+    return { redirectUrl: `/services/${serviceId}` };
   }
 
   const formatDate = (d: Date | null | undefined) => {
