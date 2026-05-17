@@ -1,49 +1,38 @@
-import { revalidatePath } from "next/cache";
+import Link from "next/link";
 
-import { ServiceForm } from "@/features/services/ServiceForm";
 import { ServiceList } from "@/features/services/ServiceList";
-import { createService, listServices } from "@/features/services/actions";
-import { listClients } from "@/features/clients/actions";
-import { listProperties } from "@/features/properties/actions";
+import { listServices } from "@/features/services/actions";
 import { requireTenantId } from "@/server/auth/tenant";
 
+const statusOptions = [
+  { value: "", label: "Todos" },
+  { value: "NEW", label: "Novo" },
+  { value: "PROPOSAL", label: "Proposta" },
+  { value: "AWAITING_ACCEPTANCE", label: "Aguardando Aceite" },
+  { value: "CONTRACTED", label: "Contratado" },
+  { value: "PLANNING", label: "Planejamento" },
+  { value: "PRODUCTION", label: "Produção" },
+  { value: "APPROVAL", label: "Aprovação" },
+  { value: "WORK", label: "Em Obra" },
+  { value: "AWAITING_CLIENT", label: "Aguardando Cliente" },
+  { value: "PAUSED", label: "Pausado" },
+  { value: "DELIVERED", label: "Entregue" },
+  { value: "CANCELED", label: "Cancelado" },
+];
+
 export default async function ServicesPage(props: {
-  searchParams: Promise<{ search?: string; clientId?: string; propertyId?: string }>;
+  searchParams: Promise<{ search?: string; clientId?: string; propertyId?: string; status?: string }>;
 }) {
-   const { search, clientId, propertyId } = await props.searchParams;
+   const { search, clientId, propertyId, status } = await props.searchParams;
    const tenantId = await requireTenantId();
-   const [servicesData, clientsData, propertiesData] = await Promise.all([
-     listServices(tenantId, { search, clientId, propertyId }),
-     listClients(tenantId, { pageSize: 100 }),
-     listProperties(tenantId, { pageSize: 100 }),
-   ]);
+   const servicesData = await listServices(tenantId, {
+     search,
+     clientId,
+     propertyId,
+     status: (status || undefined) as import("@/features/services/actions").ListServicesInput["status"],
+   });
 
-   const propertiesByClient: Record<string, { id: string; name: string }[]> = {};
-   for (const p of propertiesData.items) {
-     if (!propertiesByClient[p.client.id]) {
-       propertiesByClient[p.client.id] = [];
-     }
-     propertiesByClient[p.client.id].push({ id: p.id, name: p.name });
-   }
-
-   async function handleCreate(formData: FormData) {
-    "use server";
-
-    const clientId = formData.get("clientId") as string;
-    const propertyId = formData.get("propertyId") as string;
-
-    await createService(tenantId, {
-      clientId,
-      propertyId: propertyId || undefined,
-      title: formData.get("title") as string,
-      type: formData.get("type") as "TECHNICAL_PROJECT" | "REGULARIZATION" | "WORK_EXECUTION" | "CONSULTING" | "FIRE_SAFETY" | "PROJECT_APPROVAL_WORK",
-      description: (formData.get("description") as string) || undefined,
-      startDate: (formData.get("startDate") as string) || undefined,
-      dueDate: (formData.get("dueDate") as string) || undefined,
-    });
-
-    revalidatePath("/services");
-  }
+   const hasFilter = !!(search || clientId || propertyId || status);
 
   return (
     <div className="space-y-6">
@@ -54,21 +43,51 @@ export default async function ServicesPage(props: {
         </p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <ServiceList data={servicesData} />
-        </div>
-        <div>
-          <div className="rounded-xl border bg-white p-6">
-            <h2 className="mb-4 text-base font-semibold">Novo Serviço</h2>
-<ServiceForm
-               action={handleCreate}
-               clients={clientsData.items}
-               propertiesByClient={propertiesByClient}
-             />
+      <div className="flex items-center gap-2">
+        <form className="flex-1 space-y-2">
+          <input
+            name="search"
+            defaultValue={search ?? ""}
+            placeholder="Buscar serviços por título ou descrição..."
+            className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          />
+          <div className="flex gap-2">
+            <select
+              name="status"
+              defaultValue={status ?? ""}
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            >
+              {statusOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
+          {clientId && (
+            <input type="hidden" name="clientId" value={clientId} />
+          )}
+          {propertyId && (
+            <input type="hidden" name="propertyId" value={propertyId} />
+          )}
+        </form>
+        {hasFilter && (
+          <Link
+            href="/services"
+            className="shrink-0 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            Limpar
+          </Link>
+        )}
+        <Link
+          href="/services/new"
+          className="shrink-0 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+        >
+          Novo Serviço
+        </Link>
       </div>
+
+      <ServiceList data={servicesData} />
     </div>
   );
 }
