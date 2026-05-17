@@ -48,21 +48,20 @@ export function ServiceForm({
     : [];
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-5">
       {isPending && (
-        <div className="text-sm text-zinc-500">Salvando...</div>
+        <div className="rounded-lg bg-zinc-50 px-4 py-2 text-sm text-zinc-600">
+          Salvando...
+        </div>
       )}
-      <div>
-        <label htmlFor="clientId" className="block text-sm font-medium text-zinc-700">
-          Cliente *
-        </label>
+      <Field label="Cliente *" id="clientId">
         <select
           id="clientId"
           name="clientId"
           required
           value={selectedClientId}
           onChange={(e) => setSelectedClientId(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         >
           <option value="">Selecione um cliente</option>
           {clients.map((client) => (
@@ -71,18 +70,15 @@ export function ServiceForm({
             </option>
           ))}
         </select>
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="propertyId" className="block text-sm font-medium text-zinc-700">
-          Imóvel
-        </label>
+      <Field label="Imóvel" id="propertyId">
         <select
           id="propertyId"
           name="propertyId"
           defaultValue={initialPropertyId ?? ""}
           disabled={properties.length === 0}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 disabled:opacity-50"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200 disabled:opacity-50"
         >
           <option value="">Nenhum (opcional)</option>
           {properties.map((property) => (
@@ -91,30 +87,24 @@ export function ServiceForm({
             </option>
           ))}
         </select>
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-zinc-700">
-          Título *
-        </label>
+      <Field label="Título *" id="title">
         <input
           id="title"
           name="title"
           required
           placeholder="Ex: Reforma Apartamento 101"
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="type" className="block text-sm font-medium text-zinc-700">
-          Tipo de Serviço *
-        </label>
+      <Field label="Tipo de Serviço *" id="type">
         <select
           id="type"
           name="type"
           required
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         >
           <option value="">Selecione o tipo</option>
           {serviceTypes.map((type) => (
@@ -123,51 +113,54 @@ export function ServiceForm({
             </option>
           ))}
         </select>
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-zinc-700">
-          Descrição
-        </label>
+      <Field label="Descrição" id="description">
         <textarea
           id="description"
           name="description"
           rows={3}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-zinc-700">
-            Data de Início
-          </label>
+        <Field label="Data de Início" id="startDate">
           <input
             id="startDate"
             name="startDate"
             type="date"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
-        <div>
-          <label htmlFor="dueDate" className="block text-sm font-medium text-zinc-700">
-            Data de Entrega
-          </label>
+        </Field>
+        <Field label="Data de Entrega" id="dueDate">
           <input
             id="dueDate"
             name="dueDate"
             type="date"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
+        </Field>
       </div>
 
       <button
         type="submit"
-        className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+        disabled={isPending}
+        className="inline-flex w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-all duration-150 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
       >
         Criar Serviço
       </button>
     </form>
+  );
+}
+
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-zinc-700">
+        {label}
+      </label>
+      {children}
+    </div>
   );
 }

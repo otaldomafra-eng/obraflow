@@ -75,7 +75,7 @@ export default async function WorkLogsPage({
           <span>/</span>
           <span className="text-zinc-900">Registros de Trabalho</span>
         </div>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">Registros de Trabalho</h1>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">Registros de Trabalho</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Tarefa: {task.title}
         </p>
@@ -93,7 +93,7 @@ export default async function WorkLogsPage({
           />
         </div>
         <div>
-          <div className="rounded-xl border bg-white p-6">
+          <div className="rounded-xl border border-zinc-200 bg-white p-6">
             <h2 className="mb-4 text-base font-semibold">Novo Registro</h2>
             <WorkLogForm action={handleCreate} serviceId={serviceId} taskId={taskId} />
           </div>
