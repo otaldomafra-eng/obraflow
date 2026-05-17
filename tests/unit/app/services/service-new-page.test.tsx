@@ -59,4 +59,21 @@ describe("NewServicePage", () => {
       screen.getByRole("button", { name: "Criar Serviço" }),
     ).toBeInTheDocument();
   });
+
+  it("uses clientId and propertyId search params as initial selection", async () => {
+    render(
+      await NewServicePage({
+        searchParams: Promise.resolve({
+          clientId: "client-1",
+          propertyId: "prop-1",
+        }),
+      }),
+    );
+
+    const clientSelect = screen.getByLabelText("Cliente *") as HTMLSelectElement;
+    const propertySelect = screen.getByLabelText("Imóvel") as HTMLSelectElement;
+
+    expect(clientSelect.value).toBe("client-1");
+    expect(propertySelect.value).toBe("prop-1");
+  });
 });

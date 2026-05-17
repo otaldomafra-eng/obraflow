@@ -6,6 +6,8 @@ interface ServiceFormProps {
   action: (formData: FormData) => Promise<void>;
   clients: { id: string; name: string }[];
   propertiesByClient: Record<string, { id: string; name: string }[]>;
+  initialClientId?: string;
+  initialPropertyId?: string;
 }
 
 const serviceTypes = [
@@ -21,8 +23,10 @@ export function ServiceForm({
   action,
   clients,
   propertiesByClient,
+  initialClientId,
+  initialPropertyId,
 }: ServiceFormProps) {
-  const [selectedClientId, setSelectedClientId] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState(initialClientId ?? "");
 
   const properties = selectedClientId
     ? propertiesByClient[selectedClientId] ?? []
@@ -38,6 +42,7 @@ export function ServiceForm({
           id="clientId"
           name="clientId"
           required
+          value={selectedClientId}
           onChange={(e) => setSelectedClientId(e.target.value)}
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
         >
@@ -57,6 +62,7 @@ export function ServiceForm({
         <select
           id="propertyId"
           name="propertyId"
+          defaultValue={initialPropertyId ?? ""}
           disabled={properties.length === 0}
           className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900 disabled:opacity-50"
         >

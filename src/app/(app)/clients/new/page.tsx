@@ -22,6 +22,7 @@ export default async function NewClientPage() {
       document: (formData.get("document") as string) || undefined,
       email: (formData.get("email") as string) || undefined,
       phone: (formData.get("phone") as string) || undefined,
+      notes: (formData.get("notes") as string) || undefined,
     });
 
     revalidatePath("/clients");

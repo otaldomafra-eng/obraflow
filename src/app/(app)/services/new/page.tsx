@@ -10,7 +10,10 @@ import { requireTenantId } from "@/server/auth/tenant";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewServicePage() {
+export default async function NewServicePage(props: {
+  searchParams: Promise<{ clientId?: string; propertyId?: string }>;
+}) {
+  const { clientId, propertyId } = await props.searchParams;
   const tenantId = await requireTenantId();
 
   const [clients, propertiesData] = await Promise.all([
@@ -25,6 +28,11 @@ export default async function NewServicePage() {
     }
     propertiesByClient[p.client.id].push({ id: p.id, name: p.name });
   }
+
+  const propertyClientId = propertyId
+    ? propertiesData.items.find((property) => property.id === propertyId)?.client.id
+    : undefined;
+  const initialClientId = clientId ?? propertyClientId;
 
   async function handleCreate(formData: FormData) {
     "use server";
@@ -61,6 +69,8 @@ export default async function NewServicePage() {
           action={handleCreate}
           clients={clients}
           propertiesByClient={propertiesByClient}
+          initialClientId={initialClientId}
+          initialPropertyId={propertyId}
         />
       </div>
     </div>
