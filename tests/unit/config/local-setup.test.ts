@@ -3,8 +3,6 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
-const supabaseDatabaseUrl =
-  "postgresql://postgres.fhtyhqvxwiajoctailir:[PASSWORD]@aws-1-us-west-2.pooler.supabase.com:5432/postgres?sslmode=require&uselibpqcompat=true";
 
 function readProjectFile(...segments: string[]) {
   return readFileSync(join(root, ...segments), "utf8");
