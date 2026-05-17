@@ -1,6 +1,5 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { createProperty } from "@/features/properties/actions";
 import { PropertyNewForm } from "@/features/properties/PropertyNewForm";
@@ -28,7 +27,7 @@ export default async function NewPropertyPage(props: {
     });
 
     revalidatePath("/properties");
-    redirect(`/properties/${property.id}`);
+    return { redirectUrl: `/properties/${property.id}` };
   }
 
   return (

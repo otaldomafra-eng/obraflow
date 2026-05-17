@@ -1,6 +1,5 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { ServiceForm } from "@/features/services/ServiceForm";
 import { createService } from "@/features/services/actions";
@@ -48,7 +47,7 @@ export default async function NewServicePage(props: {
     });
 
     revalidatePath("/services");
-    redirect(`/services/${service.id}`);
+    return { redirectUrl: `/services/${service.id}` };
   }
 
   return (
