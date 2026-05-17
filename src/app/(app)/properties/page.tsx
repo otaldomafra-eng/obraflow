@@ -126,13 +126,21 @@ export default async function PropertiesPage(props: {
             </svg>
             <p className="text-sm text-zinc-400">Nenhum imóvel encontrado.</p>
             {!hasFilter && (
-              <p className="mt-1 text-xs text-zinc-400">
-                Crie um cliente e vincule um imóvel na página de{" "}
-                <Link href="/clients" className="underline hover:text-zinc-600">
-                  clientes
+              <>
+                <p className="mt-1 text-xs text-zinc-400">
+                  Crie um cliente e vincule um imóvel na página de{" "}
+                  <Link href="/clients" className="underline hover:text-zinc-600">
+                    clientes
+                  </Link>
+                  .
+                </p>
+                <Link
+                  href="/properties/new"
+                  className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                >
+                  Novo Imóvel
                 </Link>
-                .
-              </p>
+              </>
             )}
           </div>
         )}

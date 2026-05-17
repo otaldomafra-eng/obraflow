@@ -100,6 +100,12 @@ export function ServiceList({ data }: ServiceListProps) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17a5.25 5.25 0 0 0 7.41-7.41M9 12h.008v.008H9V12Zm0-3h.008v.008H9V9Zm3 3h.008v.008H12V12Zm0-3h.008v.008H12V9Zm3 3h.008v.008H15V12Zm0-3h.008v.008H15V9Z" />
           </svg>
           <p className="text-sm text-zinc-400">Nenhum serviço encontrado.</p>
+          <Link
+            href="/services/new"
+            className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+          >
+            Novo Serviço
+          </Link>
         </div>
       )}
     </div>

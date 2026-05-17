@@ -16,7 +16,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "typecheck": "tsc --noEmit",
-    "setup:e2e": "playwright install"
+    "setup:e2e": "playwright install",
+    "demo:seed": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
