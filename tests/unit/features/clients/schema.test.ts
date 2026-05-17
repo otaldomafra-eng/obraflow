@@ -86,6 +86,27 @@ describe("client actions schema validation", () => {
     expect(result.kind).toBeUndefined();
   });
 
+  it("updateClient accepts null for optional fields", () => {
+    const result = updateClientSchema.parse({
+      document: null,
+      email: null,
+      phone: null,
+      notes: null,
+    });
+    expect(result.document).toBeNull();
+    expect(result.email).toBeNull();
+    expect(result.phone).toBeNull();
+    expect(result.notes).toBeNull();
+  });
+
+  it("updateClient rejects null for name", () => {
+    expect(() => updateClientSchema.parse({ name: null })).toThrow();
+  });
+
+  it("updateClient rejects null for kind", () => {
+    expect(() => updateClientSchema.parse({ kind: null })).toThrow();
+  });
+
   it("validates listClients input with pagination", () => {
     const result = listClientsSchema.parse({ page: 2, pageSize: 50 });
     expect(result.page).toBe(2);
