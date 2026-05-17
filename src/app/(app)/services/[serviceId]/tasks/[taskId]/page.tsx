@@ -52,7 +52,9 @@ export default async function ServiceTaskDetailPage({
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{task.title}</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Tarefa do serviço {serviceId}
+            <Link href={`/services/${serviceId}`} className="hover:text-blue-600 transition-colors">
+              Serviço
+            </Link>
           </p>
         </div>
         <div className="flex items-center gap-2">
