@@ -9,6 +9,21 @@ import { requireTenantId } from "@/server/auth/tenant";
 
 export const dynamic = "force-dynamic";
 
+const statusLabels: Record<string, string> = {
+  NEW: "Novo",
+  PROPOSAL: "Proposta",
+  AWAITING_ACCEPTANCE: "Aguardando Aceite",
+  CONTRACTED: "Contratado",
+  PLANNING: "Planejamento",
+  PRODUCTION: "Produção",
+  APPROVAL: "Aprovação",
+  WORK: "Em Obra",
+  AWAITING_CLIENT: "Aguardando Cliente",
+  PAUSED: "Pausado",
+  DELIVERED: "Entregue",
+  CANCELED: "Cancelado",
+};
+
 export default async function ClientDetailPage({
   params,
 }: {
@@ -104,12 +119,20 @@ export default async function ClientDetailPage({
         <div className="rounded-xl border bg-white p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold">Imóveis</h2>
-            <Link
-              href={`/properties?clientId=${client.id}`}
-              className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
-            >
-              Ver todos
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/properties/new?clientId=${client.id}`}
+                className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
+              >
+                Novo
+              </Link>
+              <Link
+                href={`/properties?clientId=${client.id}`}
+                className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
+              >
+                Ver todos
+              </Link>
+            </div>
           </div>
           {client.properties.length === 0 ? (
             <p className="text-sm text-zinc-400">Nenhum imóvel vinculado.</p>
@@ -149,9 +172,27 @@ export default async function ClientDetailPage({
         <PropertyForm action={handleAddProperty} clientLabel={client.name} />
       </div>
 
-      {client.services.length > 0 && (
-        <div className="rounded-xl border bg-white p-6">
-          <h2 className="mb-4 text-base font-semibold">Serviços</h2>
+      <div className="rounded-xl border bg-white p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-base font-semibold">Serviços</h2>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/services/new?clientId=${client.id}`}
+              className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
+            >
+              Novo
+            </Link>
+            <Link
+              href={`/services?clientId=${client.id}`}
+              className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
+            >
+              Ver todos
+            </Link>
+          </div>
+        </div>
+        {client.services.length === 0 ? (
+          <p className="text-sm text-zinc-400">Nenhum serviço vinculado.</p>
+        ) : (
           <ul className="space-y-2">
             {client.services.map((service) => (
               <li key={service.id} className="text-sm">
@@ -161,12 +202,12 @@ export default async function ClientDetailPage({
                 >
                   {service.title}
                 </Link>
-                <span className="ml-2 text-xs text-zinc-400">{service.status}</span>
+                <span className="ml-2 text-xs text-zinc-400">{statusLabels[service.status] || service.status}</span>
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
