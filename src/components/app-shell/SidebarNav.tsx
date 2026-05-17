@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  BrainCircuit,
   ClipboardList,
+  FileCheck,
   FileText,
   FolderOpen,
   HardHat,
@@ -31,8 +33,11 @@ const navEntries: NavEntry[] = [
   { label: "Comercial", href: "/commercial", icon: Layers },
   { label: "Propostas", href: "/proposals", icon: FileText },
   { label: "Projetos", href: "/projects", icon: FolderOpen },
+  { label: "Aprovações", href: "/approvals", icon: FileCheck },
   { label: "Obras", href: "/works", icon: HardHat },
+  { label: "Documentos", href: "/documents", icon: FileText },
   { label: "Portal", href: "/portal-admin", icon: MessageSquareShare },
+  { label: "IA", href: "/ai", icon: BrainCircuit },
   { label: "Configurações", href: "/settings", icon: Settings },
 ];
 
@@ -47,11 +52,11 @@ const navGroups = [
   },
   {
     label: "Operacional",
-    items: navEntries.slice(6, 9),
+    items: navEntries.slice(6, 11),
   },
   {
     label: "Sistema",
-    items: navEntries.slice(9),
+    items: navEntries.slice(11),
   },
 ];
 
