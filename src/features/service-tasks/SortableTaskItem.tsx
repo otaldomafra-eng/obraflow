@@ -5,6 +5,9 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import Link from "next/link";
 
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { taskStatusLabels, taskStatusColors } from "@/components/ui/status";
+
 interface SortableTaskItemProps {
   id: string;
   title: string;
@@ -17,20 +20,6 @@ interface SortableTaskItemProps {
   isFirst?: boolean;
   isLast?: boolean;
 }
-
-const statusColors: Record<string, string> = {
-  PLANNING: "bg-purple-50 text-purple-700",
-  PRODUCTION: "bg-indigo-50 text-indigo-700",
-  DELIVERED: "bg-emerald-50 text-emerald-700",
-  CANCELED: "bg-red-50 text-red-700",
-};
-
-const statusLabels: Record<string, string> = {
-  PLANNING: "Planejamento",
-  PRODUCTION: "Em Produção",
-  DELIVERED: "Entregue",
-  CANCELED: "Cancelada",
-};
 
 export function SortableTaskItem({
   id,
@@ -63,7 +52,7 @@ export function SortableTaskItem({
     <tr
       ref={setNodeRef}
       style={style}
-      className={`hover:bg-zinc-50 ${isDragging ? "opacity-50" : ""}`}
+      className={`hover:bg-zinc-50 transition-colors ${isDragging ? "opacity-50" : ""}`}
     >
       <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-zinc-900">
         <div className="flex items-center gap-2">
@@ -79,25 +68,19 @@ export function SortableTaskItem({
           </button>
           <Link
             href={`/services/${serviceId}/tasks/${id}`}
-            className="hover:underline"
+            className="hover:text-blue-600 transition-colors"
           >
             {title}
           </Link>
         </div>
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-sm">
-        <span
-          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-            statusColors[status] || "bg-gray-50 text-gray-600"
-          }`}
-        >
-          {statusLabels[status] || status}
-        </span>
+        <StatusBadge status={status} labels={taskStatusLabels} colors={taskStatusColors} />
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-600">
         {dueDate ? new Date(dueDate).toLocaleDateString("pt-BR") : "-"}
       </td>
-      <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-zinc-600">
+      <td className="whitespace-nowrap px-4 py-3 text-right text-sm tabular-nums text-zinc-600">
         {workLogCount}
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-right text-sm">

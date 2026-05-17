@@ -24,44 +24,35 @@ export function ServiceTaskForm({
   task,
 }: ServiceTaskFormProps) {
   return (
-    <form action={action} className="space-y-4">
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-zinc-700">
-          Título *
-        </label>
+    <form action={action} className="space-y-5">
+      <Field label="Título *" id="title">
         <input
           id="title"
           name="title"
           required
           defaultValue={task?.title ?? ""}
           placeholder="Ex: Preparar base de concreto"
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-zinc-700">
-          Descrição
-        </label>
+      <Field label="Descrição" id="description">
         <textarea
           id="description"
           name="description"
           rows={3}
           defaultValue={task?.description ?? ""}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="status" className="block text-sm font-medium text-zinc-700">
-            Status
-          </label>
+        <Field label="Status" id="status">
           <select
             id="status"
             name="status"
             defaultValue={task?.status ?? "PLANNING"}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           >
             {taskStatuses.map((s) => (
               <option key={s.value} value={s.value}>
@@ -69,29 +60,37 @@ export function ServiceTaskForm({
               </option>
             ))}
           </select>
-        </div>
-        <div>
-          <label htmlFor="dueDate" className="block text-sm font-medium text-zinc-700">
-            Vencimento
-          </label>
+        </Field>
+        <Field label="Vencimento" id="dueDate">
           <input
             id="dueDate"
             name="dueDate"
             type="date"
             defaultValue={task?.dueDate ?? ""}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
+        </Field>
       </div>
 
       <input name="serviceId" type="hidden" value={serviceId} />
 
       <button
         type="submit"
-        className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+        className="inline-flex w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-all duration-150 hover:bg-zinc-800"
       >
         Salvar Tarefa
       </button>
     </form>
+  );
+}
+
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-zinc-700">
+        {label}
+      </label>
+      {children}
+    </div>
   );
 }
