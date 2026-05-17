@@ -11,7 +11,14 @@ export const createClientSchema = z.object({
   notes: z.string().optional(),
 });
 
-export const updateClientSchema = createClientSchema.partial();
+export const updateClientSchema = z.object({
+  name: z.string().min(1).optional(),
+  kind: z.enum(["PERSON", "COMPANY"]).optional(),
+  document: z.string().nullable().optional(),
+  email: z.string().email().nullable().optional().or(z.literal("")),
+  phone: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+});
 
 export const listClientsSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -59,6 +66,21 @@ export async function updateClient(
   });
 }
 
+export async function getClientEdit(tenantId: string, clientId: string) {
+  return prisma.client.findUnique({
+    where: { tenantId_id: { tenantId, id: clientId } },
+    select: {
+      id: true,
+      name: true,
+      kind: true,
+      document: true,
+      email: true,
+      phone: true,
+      notes: true,
+    },
+  });
+}
+
 export async function listClients(
   tenantId: string,
   input?: ListClientsInput,
@@ -94,6 +116,14 @@ export async function listClients(
   ]);
 
   return { items, total, page, pageSize, search };
+}
+
+export async function listClientsForSelect(tenantId: string) {
+  return prisma.client.findMany({
+    where: { tenantId },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
 }
 
 export async function getClientDetail(tenantId: string, clientId: string) {
