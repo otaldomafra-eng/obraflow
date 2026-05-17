@@ -43,6 +43,8 @@ export const listPropertiesSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().optional(),
   clientId: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
 });
 
 export type CreatePropertyInput = z.input<typeof createPropertySchema>;
@@ -110,11 +112,13 @@ export async function listProperties(
   tenantId: string,
   input?: ListPropertiesInput,
 ) {
-  const { page, pageSize, search, clientId } = listPropertiesSchema.parse(input ?? {});
+  const { page, pageSize, search, clientId, city, state } = listPropertiesSchema.parse(input ?? {});
 
   const where = {
     tenantId,
     ...(clientId ? { clientId } : {}),
+    ...(city ? { city: { contains: city, mode: "insensitive" as const } } : {}),
+    ...(state ? { state: { contains: state, mode: "insensitive" as const } } : {}),
     ...(search
       ? {
           OR: [
@@ -140,5 +144,5 @@ export async function listProperties(
     prisma.property.count({ where }),
   ]);
 
-  return { items, total, page, pageSize, search, clientId };
+  return { items, total, page, pageSize, search, clientId, city, state };
 }

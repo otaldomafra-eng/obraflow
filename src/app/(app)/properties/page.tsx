@@ -3,13 +3,13 @@ import { requireTenantId } from "@/server/auth/tenant";
 import Link from "next/link";
 
 export default async function PropertiesPage(props: {
-  searchParams: Promise<{ search?: string; clientId?: string }>;
+  searchParams: Promise<{ search?: string; clientId?: string; city?: string; state?: string }>;
 }) {
-  const { search, clientId } = await props.searchParams;
+  const { search, clientId, city, state } = await props.searchParams;
   const tenantId = await requireTenantId();
-  const data = await listProperties(tenantId, { search, clientId });
+  const data = await listProperties(tenantId, { search, clientId, city, state });
 
-  const hasFilter = !!(search || clientId);
+  const hasFilter = !!(search || clientId || city || state);
 
   return (
     <div className="space-y-6">
@@ -21,13 +21,27 @@ export default async function PropertiesPage(props: {
       </div>
 
       <div className="flex items-center gap-2">
-        <form className="flex-1">
+        <form className="flex-1 space-y-2">
           <input
             name="search"
             defaultValue={search ?? ""}
             placeholder="Buscar imóveis por nome, endereço ou cidade..."
             className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
           />
+          <div className="flex gap-2">
+            <input
+              name="city"
+              defaultValue={city ?? ""}
+              placeholder="Cidade"
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            />
+            <input
+              name="state"
+              defaultValue={state ?? ""}
+              placeholder="Estado"
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            />
+          </div>
           {clientId && (
             <input type="hidden" name="clientId" value={clientId} />
           )}
@@ -40,6 +54,12 @@ export default async function PropertiesPage(props: {
             Limpar
           </Link>
         )}
+        <Link
+          href="/properties/new"
+          className="shrink-0 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+        >
+          Novo Imóvel
+        </Link>
       </div>
 
       <div className="overflow-hidden rounded-xl border bg-white">
