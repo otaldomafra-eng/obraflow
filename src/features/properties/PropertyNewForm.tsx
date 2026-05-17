@@ -28,21 +28,20 @@ export function PropertyNewForm({ action, clients, initialClientId }: PropertyNe
   }, [state, router]);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-5">
       {isPending && (
-        <div className="text-sm text-zinc-500">Salvando...</div>
+        <div className="rounded-lg bg-zinc-50 px-4 py-2 text-sm text-zinc-600">
+          Salvando...
+        </div>
       )}
-      <div>
-        <label htmlFor="clientId" className="block text-sm font-medium text-zinc-700">
-          Cliente *
-        </label>
+      <Field label="Cliente *" id="clientId">
         <select
           id="clientId"
           name="clientId"
           required
           value={selectedClientId}
           onChange={(e) => setSelectedClientId(e.target.value)}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         >
           <option value="">Selecione um cliente</option>
           {clients.map((client) => (
@@ -51,68 +50,68 @@ export function PropertyNewForm({ action, clients, initialClientId }: PropertyNe
             </option>
           ))}
         </select>
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-zinc-700">
-          Nome do Imóvel *
-        </label>
+      <Field label="Nome do Imóvel *" id="name">
         <input
           id="name"
           name="name"
           required
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="address" className="block text-sm font-medium text-zinc-700">
-          Endereço
-        </label>
+      <Field label="Endereço" id="address">
         <input
           id="address"
           name="address"
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="city" className="block text-sm font-medium text-zinc-700">
-            Cidade
-          </label>
+        <Field label="Cidade" id="city">
           <input
             id="city"
             name="city"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
-        <div>
-          <label htmlFor="state" className="block text-sm font-medium text-zinc-700">
-            Estado
-          </label>
+        </Field>
+        <Field label="Estado" id="state">
           <input
             id="state"
             name="state"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
+        </Field>
       </div>
 
       <div className="flex items-center gap-3">
         <button
           type="submit"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+          disabled={isPending}
+          className="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-all duration-150 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Salvar Imóvel
         </button>
         <Link
           href="/properties"
-          className="text-sm text-zinc-500 hover:text-zinc-900"
+          className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
         >
           Cancelar
         </Link>
       </div>
     </form>
+  );
+}
+
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-zinc-700">
+        {label}
+      </label>
+      {children}
+    </div>
   );
 }
