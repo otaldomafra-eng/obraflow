@@ -2,38 +2,9 @@ import Link from "next/link";
 
 import { getDashboardData } from "@/features/dashboard/actions";
 import { requireTenantId } from "@/server/auth/tenant";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 
 export const dynamic = "force-dynamic";
-
-const statusLabels: Record<string, string> = {
-  NEW: "Novo",
-  PROPOSAL: "Proposta",
-  AWAITING_ACCEPTANCE: "Aguardando Aceite",
-  CONTRACTED: "Contratado",
-  PLANNING: "Planejamento",
-  PRODUCTION: "Produção",
-  APPROVAL: "Aprovação",
-  WORK: "Em Obra",
-  AWAITING_CLIENT: "Aguardando Cliente",
-  PAUSED: "Pausado",
-  DELIVERED: "Entregue",
-  CANCELED: "Cancelado",
-};
-
-const statusColors: Record<string, string> = {
-  NEW: "bg-gray-100 text-gray-700",
-  PROPOSAL: "bg-blue-50 text-blue-700",
-  AWAITING_ACCEPTANCE: "bg-yellow-50 text-yellow-700",
-  CONTRACTED: "bg-green-50 text-green-700",
-  PLANNING: "bg-purple-50 text-purple-700",
-  PRODUCTION: "bg-indigo-50 text-indigo-700",
-  APPROVAL: "bg-orange-50 text-orange-700",
-  WORK: "bg-cyan-50 text-cyan-700",
-  AWAITING_CLIENT: "bg-teal-50 text-teal-700",
-  PAUSED: "bg-zinc-100 text-zinc-700",
-  DELIVERED: "bg-emerald-50 text-emerald-700",
-  CANCELED: "bg-red-50 text-red-700",
-};
 
 export default async function DashboardPage() {
   const tenantId = await requireTenantId();
@@ -42,17 +13,22 @@ export default async function DashboardPage() {
   const hasData = data.clientCount > 0 || data.serviceCount > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Painel</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Painel</h1>
         <p className="mt-1 text-sm text-zinc-500">Visão executiva da operação.</p>
       </div>
 
       {!hasData ? (
-        <div className="rounded-xl border bg-white p-12 text-center">
-          <p className="text-sm text-zinc-400">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-zinc-200 bg-white px-6 py-16">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100">
+            <svg className="h-6 w-6 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+            </svg>
+          </div>
+          <p className="text-sm text-zinc-500">
             Nenhum dado encontrado. Comece cadastrando um{" "}
-            <Link href="/clients/new" className="font-medium text-zinc-900 underline hover:text-zinc-600">
+            <Link href="/clients/new" className="font-medium text-blue-600 hover:text-blue-700">
               cliente
             </Link>
             .
@@ -61,229 +37,242 @@ export default async function DashboardPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-3">
-            <Link
+            <MetricCard
               href="/clients"
-              className="rounded-xl border bg-white p-6 transition-colors hover:bg-zinc-50"
-            >
-              <dt className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                Clientes
-              </dt>
-              <dd className="mt-1 text-3xl font-semibold text-zinc-900">
-                {data.clientCount}
-              </dd>
-            </Link>
-            <Link
+              label="Clientes"
+              value={data.clientCount}
+            />
+            <MetricCard
               href="/properties"
-              className="rounded-xl border bg-white p-6 transition-colors hover:bg-zinc-50"
-            >
-              <dt className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                Imóveis
-              </dt>
-              <dd className="mt-1 text-3xl font-semibold text-zinc-900">
-                {data.propertyCount}
-              </dd>
-            </Link>
-            <Link
+              label="Imóveis"
+              value={data.propertyCount}
+            />
+            <MetricCard
               href="/services"
-              className="rounded-xl border bg-white p-6 transition-colors hover:bg-zinc-50"
-            >
-              <dt className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                Serviços
-              </dt>
-              <dd className="mt-1 text-3xl font-semibold text-zinc-900">
-                {data.serviceCount}
-              </dd>
-            </Link>
+              label="Serviços"
+              value={data.serviceCount}
+            />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border bg-white p-6">
-              <h2 className="mb-4 text-base font-semibold">Serviços por Status</h2>
-              {data.servicesByStatus.length === 0 ? (
-                <p className="text-sm text-zinc-400">Nenhum serviço cadastrado.</p>
-              ) : (
-                <div className="space-y-3">
-                  {data.servicesByStatus.map((s) => (
-                    <Link
-                      key={s.status}
-                      href={`/services?status=${s.status}`}
-                      className="flex items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-zinc-50"
-                    >
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                          statusColors[s.status] || "bg-gray-50 text-gray-600"
-                        }`}
+            <div className="rounded-xl border border-zinc-200 bg-white">
+              <div className="border-b border-zinc-100 px-6 py-4">
+                <h2 className="text-sm font-semibold text-zinc-900">Serviços por Status</h2>
+              </div>
+              <div className="p-6">
+                {data.servicesByStatus.length === 0 ? (
+                  <p className="text-sm text-zinc-400">Nenhum serviço cadastrado.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {data.servicesByStatus.map((s) => (
+                      <Link
+                        key={s.status}
+                        href={`/services?status=${s.status}`}
+                        className="flex items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-zinc-50"
                       >
-                        {statusLabels[s.status] || s.status}
-                      </span>
-                      <span className="text-sm font-medium text-zinc-900">
-                        {s.count}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              )}
+                        <StatusBadge status={s.status} />
+                        <span className="text-sm font-semibold text-zinc-900 tabular-nums">
+                          {s.count}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="rounded-xl border bg-white p-6">
-              <h2 className="mb-4 text-base font-semibold">Próximos Vencimentos</h2>
-              {data.upcomingDueDates.length === 0 ? (
-                <p className="text-sm text-zinc-400">
-                  Nenhum serviço com vencimento próximo.
-                </p>
-              ) : (
-                <ul className="space-y-3">
-                  {data.upcomingDueDates.map((svc) => (
-                    <li key={svc.id}>
-                      <Link
-                        href={`/services/${svc.id}`}
-                        className="block rounded-lg px-3 py-2 transition-colors hover:bg-zinc-50"
-                      >
-                        <div className="text-sm font-medium text-zinc-900">
-                          {svc.title}
-                        </div>
-                        <div className="text-xs text-zinc-500">
-                          {svc.client.name} &mdash;{" "}
-                          {svc.dueDate
-                            ? new Date(svc.dueDate).toLocaleDateString("pt-BR")
-                            : "Sem vencimento"}
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <div className="rounded-xl border border-zinc-200 bg-white">
+              <div className="border-b border-zinc-100 px-6 py-4">
+                <h2 className="text-sm font-semibold text-zinc-900">Próximos Vencimentos</h2>
+              </div>
+              <div className="p-6">
+                {data.upcomingDueDates.length === 0 ? (
+                  <p className="text-sm text-zinc-400">Nenhum serviço com vencimento próximo.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {data.upcomingDueDates.map((svc) => (
+                      <li key={svc.id}>
+                        <Link
+                          href={`/services/${svc.id}`}
+                          className="block rounded-lg px-3 py-2 transition-colors hover:bg-zinc-50"
+                        >
+                          <div className="text-sm font-medium text-zinc-900">
+                            {svc.title}
+                          </div>
+                          <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500">
+                            <span>{svc.client.name}</span>
+                            <span className="text-zinc-300">|</span>
+                            <span>
+                              {svc.dueDate
+                                ? new Date(svc.dueDate).toLocaleDateString("pt-BR")
+                                : "Sem vencimento"}
+                            </span>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border bg-white p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-base font-semibold">Tarefas Pendentes</h2>
-                <span className="text-xs font-medium text-zinc-500">{data.pendingTasks.length}</span>
+            <div className="rounded-xl border border-zinc-200 bg-white">
+              <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+                <h2 className="text-sm font-semibold text-zinc-900">Tarefas Pendentes</h2>
+                <span className="inline-flex items-center justify-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+                  {data.pendingTasks.length}
+                </span>
               </div>
-              {data.pendingTasks.length === 0 ? (
-                <p className="text-sm text-zinc-400">Nenhuma tarefa pendente.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {data.pendingTasks.map((task) => (
-                    <li key={task.id}>
-                      <Link
-                        href={`/services/${task.serviceId}/tasks/${task.id}`}
-                        className="block rounded-lg px-3 py-2 transition-colors hover:bg-zinc-50"
-                      >
-                        <div className="text-sm font-medium text-zinc-900">
-                          {task.title}
-                        </div>
-                        <div className="text-xs text-zinc-500">
-                          {task.serviceTitle}
-                          {task.dueDate && (
-                            <> &mdash; {new Date(task.dueDate).toLocaleDateString("pt-BR")}</>
-                          )}
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className="p-6">
+                {data.pendingTasks.length === 0 ? (
+                  <p className="text-sm text-zinc-400">Nenhuma tarefa pendente.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {data.pendingTasks.map((task) => (
+                      <li key={task.id}>
+                        <Link
+                          href={`/services/${task.serviceId}/tasks/${task.id}`}
+                          className="block rounded-lg px-3 py-2 transition-colors hover:bg-zinc-50"
+                        >
+                          <div className="text-sm font-medium text-zinc-900">
+                            {task.title}
+                          </div>
+                          <div className="mt-0.5 text-xs text-zinc-500">
+                            {task.serviceTitle}
+                            {task.dueDate && (
+                              <> &mdash; {new Date(task.dueDate).toLocaleDateString("pt-BR")}</>
+                            )}
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
 
-            <div className="rounded-xl border bg-white p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-base font-semibold">Tarefas Atrasadas</h2>
-                <span className="text-xs font-medium text-red-600">{data.overdueTasks.length}</span>
+            <div className="rounded-xl border border-zinc-200 bg-white">
+              <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+                <h2 className="text-sm font-semibold text-zinc-900">Tarefas Atrasadas</h2>
+                <span className="inline-flex items-center justify-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-200">
+                  {data.overdueTasks.length}
+                </span>
               </div>
-              {data.overdueTasks.length === 0 ? (
-                <p className="text-sm text-zinc-400">Nenhuma tarefa atrasada.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {data.overdueTasks.map((task) => (
-                    <li key={task.id}>
-                      <Link
-                        href={`/services/${task.serviceId}/tasks/${task.id}`}
-                        className="block rounded-lg px-3 py-2 transition-colors hover:bg-red-50"
-                      >
-                        <div className="text-sm font-medium text-zinc-900">
-                          {task.title}
-                        </div>
-                        <div className="text-xs text-red-500">
-                          {task.serviceTitle}
-                          {task.dueDate && (
-                            <> &mdash; Venceu {new Date(task.dueDate).toLocaleDateString("pt-BR")}</>
-                          )}
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className="p-6">
+                {data.overdueTasks.length === 0 ? (
+                  <p className="text-sm text-zinc-400">Nenhuma tarefa atrasada.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {data.overdueTasks.map((task) => (
+                      <li key={task.id}>
+                        <Link
+                          href={`/services/${task.serviceId}/tasks/${task.id}`}
+                          className="block rounded-lg px-3 py-2 transition-colors hover:bg-rose-50"
+                        >
+                          <div className="text-sm font-medium text-zinc-900">
+                            {task.title}
+                          </div>
+                          <div className="mt-0.5 text-xs text-rose-600">
+                            {task.serviceTitle}
+                            {task.dueDate && (
+                              <> &mdash; Venceu {new Date(task.dueDate).toLocaleDateString("pt-BR")}</>
+                            )}
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="rounded-xl border bg-white p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Serviços Recentes</h2>
+          <div className="rounded-xl border border-zinc-200 bg-white">
+            <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+              <h2 className="text-sm font-semibold text-zinc-900">Serviços Recentes</h2>
               <Link
                 href="/services"
-                className="text-xs font-medium text-zinc-500 hover:text-zinc-900"
+                className="text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
               >
-                Ver todos
+                Ver todos &rarr;
               </Link>
             </div>
             {data.recentServices.length === 0 ? (
-              <p className="text-sm text-zinc-400">Nenhum serviço cadastrado.</p>
+              <div className="px-6 py-8 text-sm text-zinc-400">Nenhum serviço cadastrado.</div>
             ) : (
-              <table className="min-w-full divide-y divide-zinc-200">
-                <thead className="bg-zinc-50">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                      Serviço
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                      Cliente
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                      Status
-                    </th>
-                    <th className="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
-                      Data
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100">
-                  {data.recentServices.map((svc) => (
-                    <tr key={svc.id} className="hover:bg-zinc-50">
-                      <td className="px-3 py-2 text-sm font-medium text-zinc-900">
-                        <Link
-                          href={`/services/${svc.id}`}
-                          className="hover:underline"
-                        >
-                          {svc.title}
-                        </Link>
-                      </td>
-                      <td className="px-3 py-2 text-sm text-zinc-600">
-                        {svc.client.name}
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                            statusColors[svc.status] || "bg-gray-50 text-gray-600"
-                          }`}
-                        >
-                          {statusLabels[svc.status] || svc.status}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-sm text-zinc-500">
-                        {new Date(svc.createdAt).toLocaleDateString("pt-BR")}
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="border-b border-zinc-100">
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                        Serviço
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                        Cliente
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                        Data
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-50">
+                    {data.recentServices.map((svc) => (
+                      <tr key={svc.id} className="transition-colors hover:bg-zinc-50">
+                        <td className="whitespace-nowrap px-6 py-3 text-sm font-medium text-zinc-900">
+                          <Link
+                            href={`/services/${svc.id}`}
+                            className="hover:text-blue-600 transition-colors"
+                          >
+                            {svc.title}
+                          </Link>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-3 text-sm text-zinc-600">
+                          {svc.client.name}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-3">
+                          <StatusBadge status={svc.status} />
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-3 text-sm text-zinc-500">
+                          {new Date(svc.createdAt).toLocaleDateString("pt-BR")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </>
       )}
     </div>
+  );
+}
+
+function MetricCard({
+  href,
+  label,
+  value,
+}: {
+  href: string;
+  label: string;
+  value: number;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group rounded-xl border border-zinc-200 bg-white p-6 transition-all duration-150 hover:border-zinc-300 hover:shadow-sm"
+    >
+      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+        {label}
+      </p>
+      <p className="mt-2 text-3xl font-bold tracking-tight text-zinc-900 tabular-nums">
+        {value}
+      </p>
+    </Link>
   );
 }
