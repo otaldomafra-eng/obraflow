@@ -11,30 +11,8 @@ import {
 import { ServiceTaskForm } from "@/features/service-tasks/ServiceTaskForm";
 import { ServiceTaskSortableList } from "@/features/service-tasks/ServiceTaskSortableList";
 import { requireTenantId } from "@/server/auth/tenant";
-
-const statusLabels: Record<string, string> = {
-  NEW: "Novo",
-  PROPOSAL: "Proposta",
-  AWAITING_ACCEPTANCE: "Aguardando Aceite",
-  CONTRACTED: "Contratado",
-  PLANNING: "Planejamento",
-  PRODUCTION: "Produção",
-  APPROVAL: "Aprovação",
-  WORK: "Em Obra",
-  AWAITING_CLIENT: "Aguardando Cliente",
-  PAUSED: "Pausado",
-  DELIVERED: "Entregue",
-  CANCELED: "Cancelado",
-};
-
-const typeLabels: Record<string, string> = {
-  TECHNICAL_PROJECT: "Projeto Técnico",
-  REGULARIZATION: "Regularização",
-  WORK_EXECUTION: "Execução de Obra",
-  CONSULTING: "Consultoria",
-  FIRE_SAFETY: "Prevenção de Incêndio",
-  PROJECT_APPROVAL_WORK: "Aprovação de Projeto",
-};
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { typeLabels } from "@/components/ui/status";
 
 export default async function ServiceDetailPage({
   params,
@@ -81,15 +59,13 @@ export default async function ServiceDetailPage({
     <div className="space-y-6">
         <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{service.title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{service.title}</h1>
           <p className="mt-1 text-sm text-zinc-500">
             {typeLabels[service.type] || service.type}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
-            {statusLabels[service.status] || service.status}
-          </span>
+          <StatusBadge status={service.status} />
           <Link
             href={`/services/${service.id}/edit`}
             className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-600 hover:bg-zinc-50"
@@ -100,7 +76,7 @@ export default async function ServiceDetailPage({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-xl border bg-white p-6">
+        <div className="rounded-xl border border-zinc-200 bg-white p-6">
           <h2 className="mb-4 text-base font-semibold">Informações</h2>
           <dl className="space-y-3">
             <div>
@@ -108,7 +84,7 @@ export default async function ServiceDetailPage({
               <dd className="text-sm text-zinc-900">
                 <Link
                   href={`/clients/${service.client.id}`}
-                  className="hover:underline"
+                  className="hover:text-blue-600 transition-colors"
                 >
                   {service.client.name}
                 </Link>
@@ -120,7 +96,7 @@ export default async function ServiceDetailPage({
                 <dd className="text-sm text-zinc-900">
                   <Link
                     href={`/properties/${service.property.id}`}
-                    className="hover:underline"
+                    className="hover:text-blue-600 transition-colors"
                   >
                     {service.property.name}
                   </Link>
@@ -155,36 +131,36 @@ export default async function ServiceDetailPage({
           </dl>
         </div>
 
-        <div className="rounded-xl border bg-white p-6">
+        <div className="rounded-xl border border-zinc-200 bg-white p-6">
           <h2 className="mb-4 text-base font-semibold">Estatísticas</h2>
           <dl className="grid grid-cols-2 gap-4">
             <div className="rounded-lg bg-zinc-50 p-4">
               <dt className="text-xs font-medium text-zinc-500">Tarefas</dt>
-              <dd className="text-2xl font-semibold text-zinc-900">
+              <dd className="text-2xl font-semibold text-zinc-900 tabular-nums">
                 {service._count.tasks}
               </dd>
             </div>
             <div className="rounded-lg bg-zinc-50 p-4">
               <dt className="text-xs font-medium text-zinc-500">Documentos</dt>
-              <dd className="text-2xl font-semibold text-zinc-900">
+              <dd className="text-2xl font-semibold text-zinc-900 tabular-nums">
                 {service._count.documents}
               </dd>
             </div>
             <div className="rounded-lg bg-zinc-50 p-4">
               <dt className="text-xs font-medium text-zinc-500">Propostas</dt>
-              <dd className="text-2xl font-semibold text-zinc-900">
+              <dd className="text-2xl font-semibold text-zinc-900 tabular-nums">
                 {service._count.proposals}
               </dd>
             </div>
             <div className="rounded-lg bg-zinc-50 p-4">
               <dt className="text-xs font-medium text-zinc-500">Contratos</dt>
-              <dd className="text-2xl font-semibold text-zinc-900">
+              <dd className="text-2xl font-semibold text-zinc-900 tabular-nums">
                 {service._count.contracts}
               </dd>
             </div>
             <div className="rounded-lg bg-zinc-50 p-4">
               <dt className="text-xs font-medium text-zinc-500">Registros de Trabalho</dt>
-              <dd className="text-2xl font-semibold text-zinc-900">
+              <dd className="text-2xl font-semibold text-zinc-900 tabular-nums">
                 {service._count.workLogs}
               </dd>
             </div>
@@ -193,7 +169,7 @@ export default async function ServiceDetailPage({
       </div>
 
 {(service.client.email || service.client.phone) && (
-         <div className="rounded-xl border bg-white p-6">
+         <div className="rounded-xl border border-zinc-200 bg-white p-6">
            <h2 className="mb-4 text-base font-semibold">Contato do Cliente</h2>
            <div className="space-y-2 text-sm">
              {service.client.email && (
@@ -212,14 +188,18 @@ export default async function ServiceDetailPage({
          </div>
        )}
 
-       <div className="rounded-xl border bg-white p-6">
-         <h2 className="mb-4 text-base font-semibold">Tarefas</h2>
-          <ServiceTaskSortableList
-            initialData={tasks}
-            serviceId={serviceId}
-            onReorder={handleReorder}
-          />
-         <div className="mt-6 border-t pt-4">
+       <div className="rounded-xl border border-zinc-200 bg-white">
+         <div className="border-b border-zinc-100 px-6 py-4">
+           <h2 className="text-base font-semibold">Tarefas</h2>
+         </div>
+         <div className="p-6">
+           <ServiceTaskSortableList
+             initialData={tasks}
+             serviceId={serviceId}
+             onReorder={handleReorder}
+           />
+         </div>
+         <div className="border-t border-zinc-100 px-6 py-4">
            <h3 className="mb-2 text-sm font-medium text-zinc-700">Nova Tarefa</h3>
            <ServiceTaskForm action={handleCreateTask} serviceId={serviceId} />
          </div>

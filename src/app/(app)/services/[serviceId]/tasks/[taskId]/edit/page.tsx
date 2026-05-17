@@ -37,13 +37,13 @@ export default async function ServiceTaskEditPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Editar Tarefa</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Editar Tarefa</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Atualize os dados da tarefa.
         </p>
       </div>
 
-      <div className="rounded-xl border bg-white p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6">
         <ServiceTaskForm
           action={handleUpdate}
           serviceId={serviceId}

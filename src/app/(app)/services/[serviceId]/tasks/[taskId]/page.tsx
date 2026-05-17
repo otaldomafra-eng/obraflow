@@ -5,20 +5,8 @@ import { revalidatePath } from "next/cache";
 import { getServiceTask, deleteServiceTask, completeServiceTask, reopenServiceTask } from "@/features/service-tasks/actions";
 import { DeleteTaskForm } from "@/features/service-tasks/DeleteTaskForm";
 import { requireTenantId } from "@/server/auth/tenant";
-
-const statusLabels: Record<string, string> = {
-  PLANNING: "Planejamento",
-  PRODUCTION: "Em Produção",
-  DELIVERED: "Entregue",
-  CANCELED: "Cancelada",
-};
-
-const statusColors: Record<string, string> = {
-  PLANNING: "bg-purple-50 text-purple-700",
-  PRODUCTION: "bg-indigo-50 text-indigo-700",
-  DELIVERED: "bg-emerald-50 text-emerald-700",
-  CANCELED: "bg-red-50 text-red-700",
-};
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { taskStatusLabels, taskStatusColors } from "@/components/ui/status";
 
 export default async function ServiceTaskDetailPage({
   params,
@@ -62,19 +50,13 @@ export default async function ServiceTaskDetailPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{task.title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{task.title}</h1>
           <p className="mt-1 text-sm text-zinc-500">
             Tarefa do serviço {serviceId}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-              statusColors[task.status] || "bg-gray-50 text-gray-600"
-            }`}
-          >
-            {statusLabels[task.status] || task.status}
-          </span>
+          <StatusBadge status={task.status} labels={taskStatusLabels} colors={taskStatusColors} />
           {!isCanceled && (
             <form action={isDelivered ? handleReopen : handleComplete}>
               <button
@@ -92,7 +74,7 @@ export default async function ServiceTaskDetailPage({
         </div>
       </div>
 
-      <div className="rounded-xl border bg-white p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6">
         <h2 className="mb-4 text-base font-semibold">Detalhes</h2>
         <dl className="space-y-3">
           {task.description && (
@@ -121,11 +103,11 @@ export default async function ServiceTaskDetailPage({
           )}
           <div>
             <dt className="text-sm font-medium text-zinc-500">Registros de Trabalho</dt>
-            <dd className="text-sm text-zinc-900">{task._count.workLogs}</dd>
+            <dd className="text-sm text-zinc-900 tabular-nums">{task._count.workLogs}</dd>
           </div>
           <div>
             <dt className="text-sm font-medium text-zinc-500">Total de Horas</dt>
-            <dd className="text-sm text-zinc-900">{Number(task.totalHours).toFixed(2)}h</dd>
+            <dd className="text-sm text-zinc-900 tabular-nums">{Number(task.totalHours).toFixed(2)}h</dd>
           </div>
         </dl>
       </div>
@@ -134,19 +116,19 @@ export default async function ServiceTaskDetailPage({
         <div className="flex gap-4">
           <Link
             href={`/services/${serviceId}`}
-            className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
+            className="text-sm font-medium text-zinc-500 transition-colors hover:text-blue-600"
           >
             ← Voltar ao serviço
           </Link>
           <Link
             href={`/services/${serviceId}/tasks/${taskId}/edit`}
-            className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
+            className="text-sm font-medium text-zinc-500 transition-colors hover:text-blue-600"
           >
             Editar tarefa →
           </Link>
           <Link
             href={`/services/${serviceId}/tasks/${taskId}/work-logs`}
-            className="text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:underline"
+            className="text-sm font-medium text-zinc-500 transition-colors hover:text-blue-600"
           >
             Registros de trabalho ({task._count.workLogs})
           </Link>

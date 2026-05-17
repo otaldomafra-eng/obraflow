@@ -113,7 +113,7 @@ describe("DashboardPage", () => {
 
     expect(screen.getByText("Projeto B")).toBeInTheDocument();
     expect(screen.getByText("Cliente B")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ver todos" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^Ver todos/ })).toHaveAttribute(
       "href",
       "/services",
     );

@@ -87,23 +87,23 @@ export function ServiceTaskSortableList({
   );
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-white">
+    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
       <table className="min-w-full divide-y divide-zinc-200">
-        <thead className="bg-zinc-50">
-          <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+        <thead>
+          <tr className="border-b border-zinc-100">
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
               Tarefa
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
               Status
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
               Vencimento
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">
+            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">
               Registros
             </th>
-            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">
+            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">
               Ordenar
             </th>
           </tr>
@@ -139,8 +139,11 @@ export function ServiceTaskSortableList({
       </table>
 
       {items.length === 0 && (
-        <div className="px-4 py-12 text-center text-sm text-zinc-400">
-          Nenhuma tarefa criada ainda.
+        <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+          <svg className="mb-3 h-10 w-10 text-zinc-300" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h.008v.008H9V12Zm0-3h.008v.008H9V9Zm3 3h.008v.008H12V12Zm0-3h.008v.008H12V9Zm3 3h.008v.008H15V12Zm0-3h.008v.008H15V9Z" />
+          </svg>
+          <p className="text-sm text-zinc-400">Nenhuma tarefa criada ainda.</p>
         </div>
       )}
 

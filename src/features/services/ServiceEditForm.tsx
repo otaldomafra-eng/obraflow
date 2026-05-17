@@ -47,32 +47,28 @@ export function ServiceEditForm({ action, serviceId, defaultValues }: ServiceEdi
   }, [state, router]);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-5">
       {isPending && (
-        <div className="text-sm text-zinc-500">Salvando...</div>
+        <div className="rounded-lg bg-zinc-50 px-4 py-2 text-sm text-zinc-600">
+          Salvando...
+        </div>
       )}
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-zinc-700">
-          Título *
-        </label>
+      <Field label="Título *" id="title">
         <input
           id="title"
           name="title"
           required
           defaultValue={defaultValues.title}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="status" className="block text-sm font-medium text-zinc-700">
-          Status
-        </label>
+      <Field label="Status" id="status">
         <select
           id="status"
           name="status"
           defaultValue={defaultValues.status}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         >
           {statusOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -80,62 +76,65 @@ export function ServiceEditForm({ action, serviceId, defaultValues }: ServiceEdi
             </option>
           ))}
         </select>
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-zinc-700">
-          Descrição
-        </label>
+      <Field label="Descrição" id="description">
         <textarea
           id="description"
           name="description"
           rows={4}
           defaultValue={defaultValues.description}
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-zinc-700">
-            Data de Início
-          </label>
+        <Field label="Data de Início" id="startDate">
           <input
             id="startDate"
             name="startDate"
             type="date"
             defaultValue={defaultValues.startDate}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
-        <div>
-          <label htmlFor="dueDate" className="block text-sm font-medium text-zinc-700">
-            Data de Entrega
-          </label>
+        </Field>
+        <Field label="Data de Entrega" id="dueDate">
           <input
             id="dueDate"
             name="dueDate"
             type="date"
             defaultValue={defaultValues.dueDate}
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
+        </Field>
       </div>
 
       <div className="flex items-center gap-3">
         <button
           type="submit"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+          disabled={isPending}
+          className="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-all duration-150 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Salvar
         </button>
         <a
           href={`/services/${serviceId}`}
-          className="text-sm text-zinc-500 hover:text-zinc-900"
+          className="text-sm text-zinc-500 transition-colors hover:text-zinc-900"
         >
           Cancelar
         </a>
       </div>
     </form>
+  );
+}
+
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-zinc-700">
+        {label}
+      </label>
+      {children}
+    </div>
   );
 }

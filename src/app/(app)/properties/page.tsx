@@ -14,7 +14,7 @@ export default async function PropertiesPage(props: {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Imóveis</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Imóveis</h1>
         <p className="mt-1 text-sm text-zinc-500">
           Imóveis e empreendimentos vinculados aos clientes.
         </p>
@@ -62,31 +62,31 @@ export default async function PropertiesPage(props: {
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-xl border bg-white">
+      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
         <table className="min-w-full divide-y divide-zinc-200">
-          <thead className="bg-zinc-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+          <thead>
+            <tr className="border-b border-zinc-100">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
                 Nome
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
                 Cliente
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
                 Endereço
               </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">
                 Serviços
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
             {data.items.map((property) => (
-              <tr key={property.id} className="hover:bg-zinc-50">
+              <tr key={property.id} className="hover:bg-zinc-50 transition-colors">
                 <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-zinc-900">
                   <Link
                     href={`/properties/${property.id}`}
-                    className="hover:underline"
+                    className="hover:text-blue-600 transition-colors"
                   >
                     {property.name}
                   </Link>
@@ -94,7 +94,7 @@ export default async function PropertiesPage(props: {
                 <td className="whitespace-nowrap px-4 py-3 text-sm text-zinc-600">
                   <Link
                     href={`/clients/${property.client.id}`}
-                    className="hover:underline"
+                    className="hover:text-blue-600 transition-colors"
                   >
                     {property.client.name}
                   </Link>
@@ -111,7 +111,7 @@ export default async function PropertiesPage(props: {
                     <span className="text-xs text-zinc-300">&mdash;</span>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-zinc-600">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-sm tabular-nums text-zinc-600">
                   {property._count.services}
                 </td>
               </tr>
@@ -120,7 +120,10 @@ export default async function PropertiesPage(props: {
         </table>
 
         {data.items.length === 0 && (
-          <div className="px-4 py-12 text-center">
+          <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+            <svg className="mb-3 h-10 w-10 text-zinc-300" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+            </svg>
             <p className="text-sm text-zinc-400">Nenhum imóvel encontrado.</p>
             {!hasFilter && (
               <p className="mt-1 text-xs text-zinc-400">

@@ -60,10 +60,10 @@ export default async function NewServicePage(props: {
           <span>/</span>
           <span className="text-zinc-900">Novo</span>
         </div>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">Novo Serviço</h1>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">Novo Serviço</h1>
       </div>
 
-      <div className="rounded-xl border bg-white p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6">
         <ServiceForm
           action={handleCreate}
           clients={clients}

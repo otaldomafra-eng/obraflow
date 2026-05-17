@@ -7,63 +7,62 @@ interface PropertyFormProps {
 
 export function PropertyForm({ action, clientLabel }: PropertyFormProps) {
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-5">
       {clientLabel && (
-        <div className="text-sm text-zinc-500">Cliente: {clientLabel}</div>
+        <p className="text-sm text-zinc-500">Cliente: {clientLabel}</p>
       )}
 
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-zinc-700">
-          Nome do Imóvel *
-        </label>
+      <Field label="Nome do Imóvel *" id="name">
         <input
           id="name"
           name="name"
           required
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
-      <div>
-        <label htmlFor="address" className="block text-sm font-medium text-zinc-700">
-          Endereço
-        </label>
+      <Field label="Endereço" id="address">
         <input
           id="address"
           name="address"
-          className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
         />
-      </div>
+      </Field>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="city" className="block text-sm font-medium text-zinc-700">
-            Cidade
-          </label>
+        <Field label="Cidade" id="city">
           <input
             id="city"
             name="city"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
-        <div>
-          <label htmlFor="state" className="block text-sm font-medium text-zinc-700">
-            Estado
-          </label>
+        </Field>
+        <Field label="Estado" id="state">
           <input
             id="state"
             name="state"
-            className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
+        </Field>
       </div>
 
       <button
         type="submit"
-        className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+        className="inline-flex w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-all duration-150 hover:bg-zinc-800"
       >
         Salvar Imóvel
       </button>
     </form>
+  );
+}
+
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-zinc-700">
+        {label}
+      </label>
+      {children}
+    </div>
   );
 }

@@ -54,10 +54,10 @@ export default async function ClientEditPage({
           <span>/</span>
           <span className="text-zinc-900">Editar</span>
         </div>
-        <h1 className="mt-1 text-2xl font-bold tracking-tight">Editar Cliente</h1>
+        <h1 className="mt-1 text-2xl font-bold tracking-tight text-zinc-900">Editar Cliente</h1>
       </div>
 
-      <div className="rounded-xl border bg-white p-6">
+      <div className="rounded-xl border border-zinc-200 bg-white p-6">
         <ClientEditForm
           action={handleUpdate}
           clientId={clientId}

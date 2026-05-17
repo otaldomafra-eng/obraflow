@@ -80,7 +80,7 @@ export function WorkLogEditForm({ action, defaultValues, onCancel }: WorkLogEdit
         <button
           type="button"
           onClick={onCancel}
-          className="text-sm text-zinc-500 hover:text-zinc-900"
+          className="text-sm text-zinc-500 hover:text-blue-600 transition-colors"
         >
           Cancelar
         </button>
