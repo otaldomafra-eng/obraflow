@@ -1,6 +1,10 @@
-const { chromium } = require('playwright');
-const path = require('path');
-const fs = require('fs');
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+import { chromium } from "playwright";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const BASE_URL = process.env.BASE_URL || 'https://obraflow-brown.vercel.app';
 const SCREENSHOT_DIR = process.env.SCREENSHOT_DIR || path.join(__dirname, '..', '.playwright-screenshots');
