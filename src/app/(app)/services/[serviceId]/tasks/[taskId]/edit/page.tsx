@@ -32,6 +32,7 @@ export default async function ServiceTaskEditPage({
     });
 
     revalidatePath(`/services/${serviceId}/tasks/${taskId}`);
+    return { redirectUrl: `/services/${serviceId}/tasks/${taskId}` };
   }
 
   return (

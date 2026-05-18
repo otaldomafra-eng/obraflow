@@ -137,26 +137,74 @@ if (!fs.existsSync(SCREENSHOT_DIR)) {
     }
   }
 
-  // 7d. Task detail
-  console.log('7d. Trying task detail...');
-  const svcLink = page.locator('a[href^="/services/"]:not([href="/services/new"])').first();
-  if (await svcLink.isVisible().catch(() => false)) {
-    const href = await svcLink.getAttribute('href');
-    await page.goto(`${BASE_URL}${href}`, { waitUntil: 'networkidle', timeout: 30000 });
-    await page.waitForTimeout(1000);
-    const taskLink = page.locator('a[href*="/tasks/"]').first();
-    if (await taskLink.isVisible().catch(() => false)) {
-      const taskHref = await taskLink.getAttribute('href');
-      await page.goto(`${BASE_URL}${taskHref}`, { waitUntil: 'networkidle', timeout: 30000 });
-      await page.screenshot({ path: `${SCREENSHOT_DIR}/07d-task-detail.png`, fullPage: true });
-      const taskTitle = await page.locator('h1').first().textContent().catch(() => '');
-      console.log(`   ✅ Task detail opened: ${taskHref} (${taskTitle})\n`);
-    } else {
-      console.log('   ℹ️ No task link found on service detail\n');
-    }
-  } else {
-    console.log('   ℹ️ No service detail link found for task check\n');
+  // 7d. Task detail — pick a Demo Beta service with tasks deterministically
+  console.log('7d. Trying task detail (Demo Beta deterministic)...');
+  await page.goto(`${BASE_URL}/services`, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.waitForTimeout(1000);
+  if (page.url().includes('/sign-in')) {
+    await page.fill('#email', EMAIL);
+    await page.fill('#password', PASSWORD);
+    await page.click('button[type="submit"]');
+    await page.waitForTimeout(3000);
+    await page.goto(`${BASE_URL}/services`, { waitUntil: 'networkidle', timeout: 30000 });
   }
+  // Find a Demo Beta service link (prefixed with "Demo Beta")
+  const demoServiceLink = page.locator('a[href^="/services/"]:not([href="/services/new"])').filter({ hasText: 'Demo Beta' }).first();
+  if (!(await demoServiceLink.isVisible().catch(() => false))) {
+    console.error('   ❌ No Demo Beta service found');
+    process.exit(1);
+  }
+  const serviceHref = await demoServiceLink.getAttribute('href');
+  console.log(`   Found Demo Beta service: ${serviceHref}`);
+  await page.goto(`${BASE_URL}${serviceHref}`, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.waitForTimeout(1500);
+  if (page.url().includes('/sign-in')) {
+    console.error('   ❌ Session lost navigating to service detail');
+    process.exit(1);
+  }
+  // Find task detail link on service page
+  const taskLink = page.locator('a[href*="/tasks/"]').first();
+  if (!(await taskLink.isVisible().catch(() => false))) {
+    console.error('   ❌ No task link found on service detail — service may have no tasks');
+    process.exit(1);
+  }
+  const taskHref = await taskLink.getAttribute('href');
+  console.log(`   Found task: ${taskHref}`);
+  await page.goto(`${BASE_URL}${taskHref}`, { waitUntil: 'networkidle', timeout: 30000 });
+  await page.waitForTimeout(1000);
+  if (page.url().includes('/sign-in')) {
+    console.error('   ❌ Session lost navigating to task detail');
+    process.exit(1);
+  }
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/07d-task-detail.png`, fullPage: true });
+  const taskTitle = await page.locator('h1').first().textContent().catch(() => '');
+  if (!taskTitle) {
+    console.error('   ❌ Task detail page did not render a title');
+    process.exit(1);
+  }
+  console.log(`   ✅ Task detail opened: ${taskHref} (${taskTitle})`);
+
+  // 7e. Validate work logs link on task detail
+  console.log('7e. Validating work logs link from task detail...');
+  const workLogLink = page.locator(`a[href="${taskHref}/work-logs"]`).first();
+  if (!(await workLogLink.isVisible().catch(() => false))) {
+    console.error('   ❌ Work logs link not found on task detail');
+    process.exit(1);
+  }
+  const workLogText = await workLogLink.textContent();
+  console.log(`   ✅ Work logs link found: "${workLogText.trim()}"`);
+
+  // 7f. Navigate to work logs page
+  console.log('7f. Navigating to work logs...');
+  await workLogLink.click();
+  await page.waitForTimeout(2000);
+  if (!page.url().includes('/work-logs')) {
+    console.error('   ❌ Did not navigate to work logs page');
+    process.exit(1);
+  }
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/07f-work-logs.png`, fullPage: true });
+  const workLogTitle = await page.locator('h1').first().textContent().catch(() => '');
+  console.log(`   ✅ Work logs page: "${workLogTitle}"\n`);
 
   // 8. Mobile viewport check
   console.log('8. Mobile viewport check...');

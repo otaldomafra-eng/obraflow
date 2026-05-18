@@ -49,8 +49,8 @@ vi.mock("@/features/service-tasks/ServiceTaskForm", () => ({
   ServiceTaskForm: () => null,
 }));
 
-vi.mock("@/features/service-tasks/ServiceTaskList", () => ({
-  ServiceTaskList: () => null,
+vi.mock("@/features/service-tasks/ServiceTaskSortableList", () => ({
+  ServiceTaskSortableList: () => null,
 }));
 
 describe("ServiceDetailPage", () => {
@@ -69,6 +69,18 @@ describe("ServiceDetailPage", () => {
       "href",
       "/properties/property-1",
     );
+  });
+
+  it("renders stats section with zero counts when no tasks", async () => {
+    render(
+      await ServiceDetailPage({
+        params: Promise.resolve({ serviceId: "service-1" }),
+      }),
+    );
+
+    expect(screen.getAllByText("Tarefas").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Registros de Trabalho")).toBeInTheDocument();
+    expect(screen.getByText("Estatísticas")).toBeInTheDocument();
   });
 
   it("renders edit link", async () => {

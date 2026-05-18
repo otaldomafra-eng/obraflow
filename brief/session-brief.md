@@ -1,6 +1,6 @@
 # Session 1: PR #10 Post-Deploy — Demo Seed + Production Validation
 
-**Date:** 2026-05-17 20:30 BRT  
+**Date:** 2026-05-17 20:30 BRT
 **Branch:** `main` (PR #10 already merged at `a159f1a`)
 
 ## What was accomplished
@@ -67,9 +67,61 @@
 - **Validation script:** `BASE_URL`, `SCREENSHOT_DIR`, `EMAIL`, and `PASSWORD` are configurable via environment variables with sensible defaults.
 - **Supabase pooler:** The DATABASE_URL uses Supabase's connection pooler with `&uselibpqcompat=true`, which is compatible with Prisma.
 
+---
+
+# Session 2: Task Execution Flow — Validation Hardening
+
+**Date:** 2026-05-17 20:50 BRT
+**Branch:** `main`
+
+## What was accomplished
+
+### 1. Task edit redirect fix
+- **Problem:** After editing a task at `/services/{id}/tasks/{taskId}/edit`, the user stayed on the edit page with no feedback or navigation. The `handleUpdate` server action only called `revalidatePath` without returning a redirect.
+- **Fix:** Changed `ServiceTaskForm` to support redirect via `useActionState` + `router.push()` pattern (same as `ClientEditForm` and `DeleteTaskForm`). Added loading state to submit button. The edit page's `handleUpdate` now returns `{ redirectUrl: '/services/{serviceId}/tasks/{taskId}' }`.
+- **Files:**
+  - `src/features/service-tasks/ServiceTaskForm.tsx` — added `useActionState`, `useRouter`, `redirectUrl` handling, pending state
+  - `src/app/(app)/services/[serviceId]/tasks/[taskId]/edit/page.tsx` — added `return { redirectUrl }` in `handleUpdate`
+
+### 2. Validation script hardened
+- **Problem:** The task detail check used `a[href*="/tasks/"].first()` which was non-deterministic and silently passed when no task link was found.
+- **Fix:** Now deterministically finds a "Demo Beta" service first, opens its detail, finds a task link, opens task detail, validates page rendered, then validates work logs link exists and navigates to work logs page.
+- **Fail-fast:** If any step fails (service not found, task not found, work logs link missing, navigation failed), the script exits with code 1.
+- **File:** `scripts/playwright-validate-prod.mjs`
+
+### 3. E2E tests for task flow
+- **Created:** `tests/e2e/task-flow.spec.ts` with 2 tests:
+  - **`navega /services → service detail → task detail → work logs`** — Creates client, property, service, task; navigates full flow; validates each page renders correctly.
+  - **`editar tarefa redireciona de volta ao detalhe`** — Creates full chain, edits task, validates redirect back to task detail with updated title.
+- Follows existing patterns from `redirect.spec.ts` (uses `Teste E2E ${Date.now()}` prefix).
+
+### 4. Unit test improvements
+- **File:** `tests/unit/app/services/service-detail-page.test.tsx`
+  - Fixed mock: `ServiceTaskList` → `ServiceTaskSortableList` (matching actual component used)
+  - Added test: `renders stats section with zero counts when no tasks` — validates stats grid sections render
+  - Tests now pass: 197 total (1 new)
+
+### 5. No mojibake found
+- Searched all source files in `src/app/(app)/services`, `src/features/service-tasks`, `src/features/work-logs` for corrupted UTF-8 (Ã§, Ã£, etc.) — all text is correctly encoded as UTF-8. No changes needed.
+
+## Gates verification
+
+| Gate | Result |
+|------|--------|
+| `pnpm lint` | ✅ 0 errors, 0 warnings |
+| `pnpm typecheck` | ✅ Clean |
+| `pnpm test` | ✅ 197 passed, 18 skipped |
+| `pnpm build` | ✅ Compiled, 19 routes |
+| `git diff --check` | ✅ Clean |
+
+## Technical observations
+
+- **ESM validation script:** Renamed to `.mjs` to use `import` syntax without requiring `"type": "module"` in package.json.
+- **ServiceTaskForm redirect pattern:** Follows `useActionState` + `router.push()` pattern used by `ClientEditForm` and `DeleteTaskForm`. The create use case (inside service detail page) still works because `void` is a valid return type for `Promise<{ redirectUrl?: string } | void>`.
+- **Deterministic Demo Beta lookup:** The validation script filters service links by text "Demo Beta" to find seeded data, avoiding nondeterministic first-link behavior.
+
 ## What to do next
 
-1. Review and merge this session's commit (validation script + session brief + lint fix).
-2. Consider running `pnpm demo:seed` on a regular schedule or as part of release pipeline.
-3. Add task detail navigation check when task pages become directly accessible from service detail.
-4. Update `.env.example` if new environment variables are introduced.
+1. Run e2e tests locally with `pnpm test:e2e` to verify the new task flow tests pass end-to-end against local dev server with seeded data.
+2. Run `pnpm demo:seed` on production to refresh demo data with the improved seed.
+3. Consider adding unit tests for task detail page and work logs page in a future session.

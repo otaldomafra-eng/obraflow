@@ -1,7 +1,10 @@
 "use client";
 
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 interface ServiceTaskFormProps {
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<{ redirectUrl?: string } | void>;
   serviceId: string;
   task?: {
     title: string;
@@ -23,8 +26,23 @@ export function ServiceTaskForm({
   serviceId,
   task,
 }: ServiceTaskFormProps) {
+  const router = useRouter();
+  const [state, formAction, isPending] = useActionState(
+    async (_prev: unknown, formData: FormData) => {
+      const result = await action(formData);
+      return result ?? null;
+    },
+    null as { redirectUrl?: string } | null,
+  );
+
+  useEffect(() => {
+    if (state?.redirectUrl) {
+      router.push(state.redirectUrl);
+    }
+  }, [state, router]);
+
   return (
-    <form action={action} className="space-y-5">
+    <form action={formAction} className="space-y-5">
       <Field label="Título *" id="title">
         <input
           id="title"
@@ -76,9 +94,10 @@ export function ServiceTaskForm({
 
       <button
         type="submit"
-        className="inline-flex w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-all duration-150 hover:bg-zinc-800"
+        disabled={isPending}
+        className="inline-flex w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-all duration-150 hover:bg-zinc-800 disabled:opacity-50"
       >
-        Salvar Tarefa
+        {isPending ? "Salvando..." : "Salvar Tarefa"}
       </button>
     </form>
   );
