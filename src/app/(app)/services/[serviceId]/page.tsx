@@ -277,7 +277,6 @@ export default async function ServiceDetailPage({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-blue-600 hover:text-blue-500"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     Abrir →
                   </a>

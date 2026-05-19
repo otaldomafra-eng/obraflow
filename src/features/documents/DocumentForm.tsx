@@ -83,7 +83,7 @@ export function DocumentForm({ action, services, proposals, document: doc }: Doc
         )}
       </Field>
 
-      {proposals && proposals.length > 0 && (
+      {(proposals && proposals.length > 0) || doc?.proposalId || preselectedProposalId ? (
         <Field label="Proposta (opcional)" id="proposalId">
           <input
             type="hidden"
@@ -94,14 +94,14 @@ export function DocumentForm({ action, services, proposals, document: doc }: Doc
             id="proposalId"
             readOnly
             value={
-              doc?.proposalId ?? preselectedProposalId
+              proposals && (doc?.proposalId ?? preselectedProposalId)
                 ? proposals.find((p) => p.id === (doc?.proposalId ?? preselectedProposalId))?.title ?? ""
                 : ""
             }
             className="block w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-500"
           />
         </Field>
-      )}
+      ) : null}
 
       <Field label="Título *" id="title">
         <input
