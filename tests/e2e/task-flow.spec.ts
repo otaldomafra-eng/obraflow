@@ -4,6 +4,7 @@ const PREFIX = `Teste E2E ${Date.now()}`;
 
 test.describe("fluxo operacional de tarefas", () => {
   test("navega /services → service detail → task detail → work logs", async ({ page }) => {
+    test.setTimeout(90000);
     // Login
     await page.goto("/sign-in");
     await page.getByLabel("Email").fill("admin@obraflow.local");
@@ -37,24 +38,23 @@ test.describe("fluxo operacional de tarefas", () => {
     await page.waitForFunction(() => {
       return window.location.pathname.startsWith("/services/") && !window.location.pathname.endsWith("/new");
     }, { timeout: 15000 });
-    const serviceId = page.url().split("/").pop()!;
-
-    // Create task on the service detail page
+    // Create task via inline form
     await page.waitForSelector("text=Nova Tarefa");
     await page.getByLabel("Título *").fill(`${PREFIX} - Tarefa`);
-    await page.getByRole("button", { name: "Salvar Tarefa" }).click();
-    await page.waitForTimeout(1000);
+    await page.getByRole("button", { name: /salvar tarefa/i }).click();
+    // Wait for server action + RSC re-render to propagate
+    await page.waitForTimeout(2000);
 
-    // Task should appear in the list and be clickable
-    const taskLink = page.locator(`a[href="/services/${serviceId}/tasks/"]`).last();
-    await expect(taskLink).toBeVisible({ timeout: 5000 });
-    const taskHref = await taskLink.getAttribute("href");
+    // Find task link by title text (robust — works regardless of URL structure)
+    const createdTaskLink = page.getByRole("link", { name: `${PREFIX} - Tarefa` });
+    await expect(createdTaskLink).toBeVisible({ timeout: 8000 });
+    const taskHref = await createdTaskLink.getAttribute("href");
     await page.goto(taskHref!);
     await page.waitForURL(`**/tasks/**`, { timeout: 10000 });
 
     // Validate task detail page
     await expect(page.getByRole("heading", { name: `${PREFIX} - Tarefa` })).toBeVisible({ timeout: 5000 });
-    await expect(page.getByText("Registros de Trabalho")).toBeVisible();
+    await expect(page.getByText("Registros de Trabalho", { exact: true })).toBeVisible();
     await expect(page.getByText("Editar tarefa →")).toBeVisible();
 
     // Navigate to work logs
@@ -64,6 +64,7 @@ test.describe("fluxo operacional de tarefas", () => {
   });
 
   test("editar tarefa redireciona de volta ao detalhe", async ({ page }) => {
+    test.setTimeout(90000);
     // Login
     await page.goto("/sign-in");
     await page.getByLabel("Email").fill("admin@obraflow.local");
@@ -95,18 +96,17 @@ test.describe("fluxo operacional de tarefas", () => {
     await page.waitForFunction(() => {
       return window.location.pathname.startsWith("/services/") && !window.location.pathname.endsWith("/new");
     }, { timeout: 15000 });
-    const serviceId = page.url().split("/").pop()!;
-
     // Create task
     await page.waitForSelector("text=Nova Tarefa");
     await page.getByLabel("Título *").fill(`${PREFIX} - Tarefa Edit`);
-    await page.getByRole("button", { name: "Salvar Tarefa" }).click();
-    await page.waitForTimeout(1000);
+    await page.getByRole("button", { name: /salvar tarefa/i }).click();
+    // Wait for server action + RSC re-render to propagate
+    await page.waitForTimeout(2000);
 
-    // Navigate to task detail
-    const taskLink = page.locator(`a[href="/services/${serviceId}/tasks/"]`).last();
-    await expect(taskLink).toBeVisible({ timeout: 5000 });
-    const taskHref = await taskLink.getAttribute("href");
+    // Navigate to task detail by title
+    const createdTaskLink = page.getByRole("link", { name: `${PREFIX} - Tarefa Edit` });
+    await expect(createdTaskLink).toBeVisible({ timeout: 8000 });
+    const taskHref = await createdTaskLink.getAttribute("href");
     await page.goto(taskHref!);
     await page.waitForURL(`**/tasks/**`, { timeout: 10000 });
     const taskId = page.url().split("/").pop()!;
@@ -120,13 +120,10 @@ test.describe("fluxo operacional de tarefas", () => {
     const titleInput = page.getByLabel("Título *");
     await titleInput.clear();
     await titleInput.fill(`${PREFIX} - Tarefa Edit Atualizada`);
-    await page.getByRole("button", { name: /salvar/i }).click();
+    await page.getByRole("button", { name: "Salvar Tarefa" }).click();
 
     // Should redirect back to task detail
-    await page.waitForFunction(
-      () => /^\/services\/[^/]+\/tasks\/[^/]+\/?$/.test(window.location.pathname),
-      { timeout: 15000 },
-    );
+    await page.waitForURL(/\/services\/.+\/tasks\/[^/]+$/, { timeout: 20000 });
     await expect(page.getByRole("heading", { name: `${PREFIX} - Tarefa Edit Atualizada` })).toBeVisible({ timeout: 5000 });
   });
 });

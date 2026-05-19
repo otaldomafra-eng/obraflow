@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   DndContext,
   closestCenter,
@@ -33,6 +33,11 @@ export function ServiceTaskSortableList({
 }: ServiceTaskSortableListProps) {
   const [items, setItems] = useState(initialData);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setItems(initialData);
+  }, [initialData]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -88,31 +93,31 @@ export function ServiceTaskSortableList({
 
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-      <table className="min-w-full divide-y divide-zinc-200">
-        <thead>
-          <tr className="border-b border-zinc-100">
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              Tarefa
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              Status
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              Vencimento
-            </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              Registros
-            </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              Ordenar
-            </th>
-          </tr>
-        </thead>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <table className="min-w-full divide-y divide-zinc-200">
+          <thead>
+            <tr className="border-b border-zinc-100">
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                Tarefa
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                Status
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                Vencimento
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                Registros
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                Ordenar
+              </th>
+            </tr>
+          </thead>
           <SortableContext
             items={items.map((t) => t.id)}
             strategy={verticalListSortingStrategy}
@@ -135,8 +140,8 @@ export function ServiceTaskSortableList({
               ))}
             </tbody>
           </SortableContext>
-        </DndContext>
-      </table>
+        </table>
+      </DndContext>
 
       {items.length === 0 && (
         <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
