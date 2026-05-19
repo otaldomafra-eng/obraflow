@@ -65,6 +65,11 @@ async function cleanDemoData(tenantId: string) {
     });
   }
 
+  // Documents must be deleted before services (onDelete: Restrict)
+  await prisma.document.deleteMany({
+    where: { tenantId, serviceId: { in: demoServiceIds } },
+  });
+
   await prisma.workLog.deleteMany({
     where: { tenantId, summary: { startsWith: PREFIX } },
   });
@@ -422,6 +427,75 @@ async function main() {
         totalAmount: new Prisma.Decimal(12000.0),
         validUntil: DATES.future(60),
         notes: "Projeto estrutural em concreto armado. 3 pavimentos.",
+      },
+    });
+  }
+
+  // ── Documents ──────────────────────────────────────────
+  console.log("  Seeding documents...");
+
+  const docSvc1 = await prisma.service.findFirst({
+    where: { tenantId, title: "Demo Beta Reforma Residencial Completa" },
+    select: { id: true },
+  });
+
+  const docSvc2 = await prisma.service.findFirst({
+    where: { tenantId, title: "Demo Beta Aprovacao de Projeto Residencial" },
+    select: { id: true },
+  });
+
+  const docSvc3 = await prisma.service.findFirst({
+    where: { tenantId, title: "Demo Beta Projeto Estrutural" },
+    select: { id: true },
+  });
+
+  const acceptedProp = await prisma.proposal.findFirst({
+    where: { tenantId, status: "ACCEPTED" },
+    select: { id: true },
+  });
+
+  const sentProp = await prisma.proposal.findFirst({
+    where: { tenantId, status: "SENT" },
+    select: { id: true },
+  });
+
+  if (docSvc1) {
+    await prisma.document.create({
+      data: {
+        tenantId,
+        serviceId: docSvc1.id,
+        proposalId: acceptedProp?.id ?? null,
+        title: "Memorial Descritivo - Reforma Residencial",
+        url: "https://exemplo.com/memorial-reforma.pdf",
+        visibility: "CLIENT_VISIBLE",
+        mimeType: "application/pdf",
+      },
+    });
+  }
+
+  if (docSvc2) {
+    await prisma.document.create({
+      data: {
+        tenantId,
+        serviceId: docSvc2.id,
+        proposalId: sentProp?.id ?? null,
+        title: "Contrato de Aprovação de Projeto",
+        url: "https://exemplo.com/contrato-aprovacao.pdf",
+        visibility: "INTERNAL",
+        mimeType: "application/pdf",
+      },
+    });
+  }
+
+  if (docSvc3) {
+    await prisma.document.create({
+      data: {
+        tenantId,
+        serviceId: docSvc3.id,
+        title: "Imagem de Referência - Estrutural",
+        url: "https://exemplo.com/referencia-estrutural.jpg",
+        visibility: "SUPPLIER_VISIBLE",
+        mimeType: "image/jpeg",
       },
     });
   }
