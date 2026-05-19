@@ -53,6 +53,14 @@ vi.mock("@/features/service-tasks/ServiceTaskSortableList", () => ({
   ServiceTaskSortableList: () => null,
 }));
 
+vi.mock("@/features/proposals/actions", () => ({
+  listProposals: vi.fn(async () => []),
+}));
+
+vi.mock("@/features/proposals/ProposalStatusBadge", () => ({
+  ProposalStatusBadge: () => null,
+}));
+
 describe("ServiceDetailPage", () => {
   it("links client to /clients/[id] and property to /properties/[id]", async () => {
     render(

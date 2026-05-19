@@ -51,6 +51,20 @@ async function getTenantId(): Promise<string> {
 }
 
 async function cleanDemoData(tenantId: string) {
+  // Proposals must be deleted before services (onDelete: Restrict)
+  const demoServiceIds = (
+    await prisma.service.findMany({
+      where: { tenantId, title: { startsWith: PREFIX } },
+      select: { id: true },
+    })
+  ).map((s) => s.id);
+
+  if (demoServiceIds.length > 0) {
+    await prisma.proposal.deleteMany({
+      where: { tenantId, serviceId: { in: demoServiceIds } },
+    });
+  }
+
   await prisma.workLog.deleteMany({
     where: { tenantId, summary: { startsWith: PREFIX } },
   });
@@ -346,6 +360,71 @@ async function main() {
       hours: new Prisma.Decimal("6.00"),
     },
   });
+
+  // ── Proposals ──────────────────────────────────────────
+  console.log("  Seeding proposals...");
+
+  const seedService1 = await prisma.service.findFirst({
+    where: { tenantId, title: "Demo Beta Reforma Residencial Completa" },
+    select: { id: true },
+  });
+
+  const seedService2 = await prisma.service.findFirst({
+    where: { tenantId, title: "Demo Beta Aprovacao de Projeto Residencial" },
+    select: { id: true },
+  });
+
+  const seedService3 = await prisma.service.findFirst({
+    where: { tenantId, title: "Demo Beta Projeto Estrutural" },
+    select: { id: true },
+  });
+
+  if (seedService1) {
+    await prisma.proposal.create({
+      data: {
+        tenantId,
+        serviceId: seedService1.id,
+        title: "Proposta de Reforma Residencial Completa",
+        status: "SENT",
+        totalAmount: new Prisma.Decimal(45000.0),
+        sentAt: DATES.past(10),
+        validUntil: DATES.future(20),
+        notes:
+          "Escopo: reforma completa incluindo elétrica, hidráulica e acabamentos. Prazo estimado: 60 dias.",
+      },
+    });
+  }
+
+  if (seedService2) {
+    await prisma.proposal.create({
+      data: {
+        tenantId,
+        serviceId: seedService2.id,
+        title: "Proposta de Aprovacao de Projeto Residencial",
+        status: "ACCEPTED",
+        totalAmount: new Prisma.Decimal(18500.0),
+        sentAt: DATES.past(20),
+        acceptedAt: DATES.past(15),
+        validUntil: DATES.future(45),
+        notes:
+          "Aprovação de projeto residencial junto à Prefeitura de Palmas. Inclui todas as taxas.",
+      },
+    });
+  }
+
+  if (seedService3) {
+    await prisma.proposal.create({
+      data: {
+        tenantId,
+        serviceId: seedService3.id,
+        title: "Proposta de Projeto Estrutural",
+        status: "DRAFT",
+        totalAmount: new Prisma.Decimal(12000.0),
+        validUntil: DATES.future(60),
+        notes: "Projeto estrutural em concreto armado. 3 pavimentos.",
+      },
+    });
+  }
 
   console.log("Demo data created successfully!");
   console.log(`  Clients: 3 (${client1.name}, ${client2.name}, ${client3.name})`);

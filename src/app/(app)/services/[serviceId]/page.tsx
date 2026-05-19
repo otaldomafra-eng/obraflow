@@ -13,6 +13,8 @@ import { ServiceTaskSortableList } from "@/features/service-tasks/ServiceTaskSor
 import { requireTenantId } from "@/server/auth/tenant";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { typeLabels } from "@/components/ui/status";
+import { ProposalStatusBadge } from "@/features/proposals/ProposalStatusBadge";
+import { listProposals } from "@/features/proposals/actions";
 
 export default async function ServiceDetailPage({
   params,
@@ -29,6 +31,7 @@ export default async function ServiceDetailPage({
   }
 
   const tasks = await listServiceTasks(tenantId, serviceId);
+  const proposals = await listProposals(tenantId, { serviceId });
 
   async function handleCreateTask(formData: FormData) {
     "use server";
@@ -146,12 +149,15 @@ export default async function ServiceDetailPage({
                 {service._count.documents}
               </dd>
             </div>
-            <div className="rounded-lg bg-zinc-50 p-4">
+            <Link
+              href="/proposals?status=DRAFT"
+              className="rounded-lg bg-zinc-50 p-4 transition-colors hover:bg-zinc-100"
+            >
               <dt className="text-xs font-medium text-zinc-500">Propostas</dt>
               <dd className="text-2xl font-semibold text-zinc-900 tabular-nums">
                 {service._count.proposals}
               </dd>
-            </div>
+            </Link>
             <div className="rounded-lg bg-zinc-50 p-4">
               <dt className="text-xs font-medium text-zinc-500">Contratos</dt>
               <dd className="text-2xl font-semibold text-zinc-900 tabular-nums">
@@ -188,9 +194,56 @@ export default async function ServiceDetailPage({
          </div>
        )}
 
-       <div className="rounded-xl border border-zinc-200 bg-white">
-         <div className="border-b border-zinc-100 px-6 py-4">
-           <h2 className="text-base font-semibold">Tarefas</h2>
+      <div className="rounded-xl border border-zinc-200 bg-white">
+          <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
+            <h2 className="text-base font-semibold text-zinc-900">Propostas</h2>
+            <Link
+              href={`/proposals/new?serviceId=${serviceId}`}
+              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+            >
+              Criar Proposta →
+            </Link>
+          </div>
+          {proposals.length === 0 ? (
+            <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
+              <p className="text-sm text-zinc-400">Nenhuma proposta vinculada a este serviço.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-zinc-100">
+              {proposals.map((proposal) => (
+                <Link
+                  key={proposal.id}
+                  href={`/proposals/${proposal.id}`}
+                  className="flex items-center justify-between px-6 py-3 transition-colors hover:bg-zinc-50"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-zinc-900">{proposal.title}</p>
+                    {proposal.validUntil && (
+                      <p className="text-xs text-zinc-400">
+                        Validade: {new Intl.DateTimeFormat("pt-BR").format(new Date(proposal.validUntil))}
+                      </p>
+                    )}
+                  </div>
+                  <div className="ml-4 flex items-center gap-3">
+                    <ProposalStatusBadge status={proposal.status} />
+                    <span className="text-sm tabular-nums text-zinc-900">
+                      {proposal.totalAmount
+                        ? new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          }).format(Number(proposal.totalAmount))
+                        : "—"}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-zinc-200 bg-white">
+          <div className="border-b border-zinc-100 px-6 py-4">
+            <h2 className="text-base font-semibold">Tarefas</h2>
          </div>
          <div className="p-6">
            <ServiceTaskSortableList

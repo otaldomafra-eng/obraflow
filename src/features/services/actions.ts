@@ -248,6 +248,18 @@ export async function listServices(
   return { items, total, page, pageSize };
 }
 
+export async function listServiceOptions(tenantId: string) {
+  return prisma.service.findMany({
+    where: { tenantId },
+    select: {
+      id: true,
+      title: true,
+      client: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 export async function getServiceDetail(tenantId: string, serviceId: string) {
   return prisma.service.findUnique({
     where: { tenantId_id: { tenantId, id: serviceId } },
