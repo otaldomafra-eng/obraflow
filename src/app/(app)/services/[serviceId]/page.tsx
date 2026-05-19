@@ -261,13 +261,17 @@ export default async function ServiceDetailPage({
         ) : (
           <div className="divide-y divide-zinc-100">
             {documents.map((doc) => (
-              <Link
+              <div
                 key={doc.id}
-                href={`/documents/${doc.id}`}
                 className="flex items-center justify-between px-6 py-3 transition-colors hover:bg-zinc-50"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-zinc-900">{doc.title}</p>
+                  <Link
+                    href={`/documents/${doc.id}`}
+                    className="truncate text-sm font-medium text-zinc-900 hover:text-blue-600"
+                  >
+                    {doc.title}
+                  </Link>
                   <p className="text-xs text-zinc-400">{doc.mimeType ?? "—"}</p>
                 </div>
                 <div className="ml-4 flex items-center gap-3">
@@ -281,7 +285,7 @@ export default async function ServiceDetailPage({
                     Abrir →
                   </a>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
