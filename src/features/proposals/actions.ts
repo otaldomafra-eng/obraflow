@@ -15,7 +15,6 @@ const createProposalSchema = z.object({
 });
 
 const updateProposalSchema = z.object({
-  serviceId: z.string().min(1).optional(),
   title: z.string().min(1).optional(),
   totalAmount: z.string().optional().transform((v) => (v ? new Decimal(v) : undefined)),
   status: z.enum(PROPOSAL_STATUSES).optional(),
@@ -112,7 +111,6 @@ export async function updateProposal(
 
   const updateData: Record<string, unknown> = {};
 
-  if (data.serviceId !== undefined) updateData.serviceId = data.serviceId;
   if (data.title !== undefined) updateData.title = data.title;
   if (data.totalAmount !== undefined) updateData.totalAmount = data.totalAmount;
   if (data.status !== undefined) updateData.status = data.status;

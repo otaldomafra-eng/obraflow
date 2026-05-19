@@ -81,7 +81,6 @@ describe("proposal schema validation", () => {
     });
 
     expect(result.title).toBe("Título Atualizado");
-    expect(result.serviceId).toBeUndefined();
   });
 
   it("rejects invalid status in update", () => {
@@ -90,5 +89,14 @@ describe("proposal schema validation", () => {
         status: "INVALID" as "DRAFT",
       }),
     ).toThrow();
+  });
+
+  it("update schema rejects serviceId", () => {
+    const result = updateProposalSchema.parse({
+      title: "Título Atualizado",
+    });
+
+    expect(result.title).toBe("Título Atualizado");
+    expect(Object.keys(result)).not.toContain("serviceId");
   });
 });

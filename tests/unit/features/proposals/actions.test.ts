@@ -228,5 +228,84 @@ describe("proposal actions", () => {
         }),
       ).rejects.toThrow("does not belong to service");
     });
+
+    it("does not overwrite sentAt when already set", async () => {
+      const existingSentAt = new Date("2026-05-01");
+      prismaMock.proposal.findFirst.mockResolvedValue({
+        sentAt: existingSentAt,
+        acceptedAt: null,
+      });
+      prismaMock.proposal.update.mockResolvedValue({} as never);
+
+      await updateProposal("tenant-1", "svc-1", "prop-1", {
+        status: "SENT",
+      });
+
+      const updateCall = prismaMock.proposal.update.mock.calls[0][0];
+      expect(updateCall.data.sentAt).toBeUndefined();
+    });
+
+    it("does not overwrite acceptedAt when already set", async () => {
+      const existingAcceptedAt = new Date("2026-05-01");
+      prismaMock.proposal.findFirst.mockResolvedValue({
+        sentAt: new Date(),
+        acceptedAt: existingAcceptedAt,
+      });
+      prismaMock.proposal.update.mockResolvedValue({} as never);
+
+      await updateProposal("tenant-1", "svc-1", "prop-1", {
+        status: "ACCEPTED",
+      });
+
+      const updateCall = prismaMock.proposal.update.mock.calls[0][0];
+      expect(updateCall.data.acceptedAt).toBeUndefined();
+    });
+
+    it("does not clear acceptedAt when staying in ACCEPTED", async () => {
+      prismaMock.proposal.findFirst.mockResolvedValue({
+        sentAt: new Date(),
+        acceptedAt: new Date("2026-05-01"),
+      });
+      prismaMock.proposal.update.mockResolvedValue({} as never);
+
+      await updateProposal("tenant-1", "svc-1", "prop-1", {
+        title: "Novo título",
+        status: "ACCEPTED",
+      });
+
+      const updateCall = prismaMock.proposal.update.mock.calls[0][0];
+      expect(updateCall.data.acceptedAt).toBeUndefined();
+    });
+
+    it("sets acceptedAt when moving to ACCEPTED", async () => {
+      prismaMock.proposal.findFirst.mockResolvedValue({
+        sentAt: new Date(),
+        acceptedAt: null,
+      });
+      prismaMock.proposal.update.mockResolvedValue({} as never);
+
+      await updateProposal("tenant-1", "svc-1", "prop-1", {
+        status: "ACCEPTED",
+      });
+
+      const updateCall = prismaMock.proposal.update.mock.calls[0][0];
+      expect(updateCall.data.acceptedAt).toBeInstanceOf(Date);
+    });
+
+    it("ignores serviceId if passed in input", async () => {
+      prismaMock.proposal.findFirst.mockResolvedValue({
+        sentAt: null,
+        acceptedAt: null,
+      });
+      prismaMock.proposal.update.mockResolvedValue({} as never);
+
+      await updateProposal("tenant-1", "svc-1", "prop-1", {
+        title: "Atualizado",
+        serviceId: "svc-2" as unknown as undefined,
+      } as never);
+
+      const updateCall = prismaMock.proposal.update.mock.calls[0][0];
+      expect(updateCall.data.serviceId).toBeUndefined();
+    });
   });
 });

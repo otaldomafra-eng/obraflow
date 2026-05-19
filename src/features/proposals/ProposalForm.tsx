@@ -110,6 +110,21 @@ export function ProposalForm({ action, services, proposal }: ProposalFormProps) 
         </Field>
       </div>
 
+      <Field label="Status" id="status">
+        <select
+          id="status"
+          name="status"
+          defaultValue={proposal?.status ?? "DRAFT"}
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+        >
+          <option value="DRAFT">Rascunho</option>
+          <option value="SENT">Enviada</option>
+          <option value="ACCEPTED">Aceita</option>
+          <option value="REJECTED">Recusada</option>
+          <option value="CANCELED">Cancelada</option>
+        </select>
+      </Field>
+
       <Field label="Observações" id="notes">
         <textarea
           id="notes"

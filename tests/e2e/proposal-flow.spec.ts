@@ -51,13 +51,47 @@ test.describe("fluxo comercial de propostas", () => {
     // Fill proposal form
     await page.getByLabel("Título *").fill(`${PREFIX} - Proposta`);
     await page.getByLabel("Valor Total").fill("15000");
+    // Status defaults to "Rascunho" (DRAFT)
     await page.getByRole("button", { name: "Criar Proposta" }).click();
 
-    // Wait for redirect to proposal detail
-    await page.waitForURL(`/proposals/**`, { timeout: 15000 });
+    // Wait for redirect to proposal detail (exclude /new)
+    await page.waitForFunction(() => {
+      return window.location.pathname.startsWith("/proposals/") && !window.location.pathname.endsWith("/new");
+    }, { timeout: 15000 });
+    const proposalId = page.url().split("/").pop()!;
 
     // Verify title is visible on the detail page
     await expect(page.getByRole("heading", { name: `${PREFIX} - Proposta` })).toBeVisible({ timeout: 5000 });
+
+    // Verify status badge shows "Rascunho"
+    await expect(page.getByText("Rascunho")).toBeVisible({ timeout: 5000 });
+
+    // Navigate to edit page
+    await page.getByRole("link", { name: /editar proposta/i }).click();
+    await page.waitForFunction(
+      (id: string) => window.location.pathname === `/proposals/${id}/edit`,
+      proposalId,
+      { timeout: 15000 },
+    );
+
+    // Change status to "Enviada" (SENT) and update title
+    const titleInput = page.getByLabel("Título *");
+    await titleInput.clear();
+    await titleInput.fill(`${PREFIX} - Proposta (Enviada)`);
+
+    await page.getByLabel("Status").selectOption("SENT");
+    await page.getByRole("button", { name: "Salvar Proposta" }).click();
+
+    // Confirm redirect back to detail page
+    await page.waitForFunction(
+      (id: string) => window.location.pathname === `/proposals/${id}`,
+      proposalId,
+      { timeout: 15000 },
+    );
+
+    // Confirm updated title and badge
+    await expect(page.getByRole("heading", { name: `${PREFIX} - Proposta (Enviada)` })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("Enviada", { exact: true })).toBeVisible({ timeout: 5000 });
   });
 
   test("dashboard comercial exibe metricas", async ({ page }) => {
