@@ -290,6 +290,7 @@ model Proposal {
   tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   service     Service    @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
   contracts   Contract[]
+  documents   Document[]
 
   @@unique([tenantId, id])
   @@unique([tenantId, serviceId, id])
@@ -439,6 +440,7 @@ model Document {
   tenantId    String
   externalKey String?
   serviceId   String
+  proposalId  String?
   title       String
   url         String
   visibility  DocumentVisibility @default(INTERNAL)
@@ -447,10 +449,12 @@ model Document {
   updatedAt   DateTime           @updatedAt
   tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   service     Service            @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
+  proposal    Proposal?          @relation(fields: [tenantId, serviceId, proposalId], references: [tenantId, serviceId, id], onDelete: Restrict)
 
   @@unique([tenantId, id])
   @@unique([tenantId, externalKey])
   @@index([tenantId, serviceId])
+  @@index([tenantId, serviceId, proposalId])
 }
 
 model Message {
