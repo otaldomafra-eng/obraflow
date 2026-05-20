@@ -3,21 +3,19 @@
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 
-import { setupFirstAdmin } from "@/features/setup/actions";
+import type { SetupResult } from "@/features/setup/actions";
 
 const initialState: { ok?: boolean; error?: string } = {};
 
-export function SetupForm() {
+export function SetupForm({
+  action,
+}: {
+  action: (data: FormData) => Promise<SetupResult>;
+}) {
   const router = useRouter();
 
   async function handleSubmit(_prev: unknown, formData: FormData) {
-    const result = await setupFirstAdmin({
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      password: formData.get("password") as string,
-      tenantName: formData.get("tenantName") as string,
-      tenantSlug: formData.get("tenantSlug") as string,
-    });
+    const result = await action(formData);
 
     if (result.ok) {
       router.push("/sign-in");
