@@ -145,7 +145,7 @@ async function main() {
     },
   });
 
-  await prisma.proposal.upsert({
+  const proposalAccepted = await prisma.proposal.upsert({
     where: {
       tenantId_externalKey: {
         tenantId: tenant.id,
@@ -168,6 +168,54 @@ async function main() {
       totalAmount: new Prisma.Decimal("18500.00"),
       sentAt: new Date("2026-05-01T12:00:00.000Z"),
       acceptedAt: new Date("2026-05-03T12:00:00.000Z"),
+    },
+  });
+
+  await prisma.contract.upsert({
+    where: {
+      tenantId_externalKey: {
+        tenantId: tenant.id,
+        externalKey: "demo-contract-signed",
+      },
+    },
+    update: {
+      externalKey: "demo-contract-signed",
+      serviceId: service.id,
+      proposalId: proposalAccepted.id,
+      number: "CT-DEMO-001",
+      status: "SIGNED",
+      signedAt: new Date("2026-05-10T12:00:00.000Z"),
+    },
+    create: {
+      tenantId: tenant.id,
+      externalKey: "demo-contract-signed",
+      serviceId: service.id,
+      proposalId: proposalAccepted.id,
+      number: "CT-DEMO-001",
+      status: "SIGNED",
+      signedAt: new Date("2026-05-10T12:00:00.000Z"),
+    },
+  });
+
+  await prisma.contract.upsert({
+    where: {
+      tenantId_externalKey: {
+        tenantId: tenant.id,
+        externalKey: "demo-contract-draft",
+      },
+    },
+    update: {
+      externalKey: "demo-contract-draft",
+      serviceId: service.id,
+      number: "CT-DEMO-002",
+      status: "DRAFT",
+    },
+    create: {
+      tenantId: tenant.id,
+      externalKey: "demo-contract-draft",
+      serviceId: service.id,
+      number: "CT-DEMO-002",
+      status: "DRAFT",
     },
   });
 

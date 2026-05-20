@@ -69,6 +69,14 @@ vi.mock("@/features/documents/DocumentVisibilityBadge", () => ({
   DocumentVisibilityBadge: () => null,
 }));
 
+vi.mock("@/features/contracts/actions", () => ({
+  listContracts: vi.fn(async () => []),
+}));
+
+vi.mock("@/features/contracts/ContractStatusBadge", () => ({
+  ContractStatusBadge: () => null,
+}));
+
 describe("ServiceDetailPage", () => {
   it("links client to /clients/[id] and property to /properties/[id]", async () => {
     render(
