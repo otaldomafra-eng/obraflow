@@ -34,6 +34,15 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.CONFIRM_PROD_SEED !== "1"
+  ) {
+    console.error(
+      "Refusing to seed a production database. Set CONFIRM_PROD_SEED=1 to override (not recommended).",
+    );
+    process.exit(1);
+  }
   const tenant = await prisma.tenant.upsert({
     where: { slug: "demo-obraflow" },
     update: { name: "Demo ObraFlow" },
