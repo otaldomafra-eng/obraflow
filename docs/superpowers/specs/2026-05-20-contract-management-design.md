@@ -1,14 +1,16 @@
-# Contratos — Design
+# Contratos - Design
 
 ## Problem
 
-Services show a contract count stat, and proposals reference contracts via FK, but users cannot create, view, or manage contracts. The Contract model exists in Prisma but has no CRUD workflow, no routes, and no UI.
+Services already show a contract count and proposals already relate to contracts, but users cannot create, view, or manage contracts. The `Contract` model exists in Prisma and should be used as-is for this slice.
 
 ## Scope
 
-Full CRUD for contracts linked to services (required) and optionally linked to a parent proposal. Auto-numbering on creation. Status lifecycle with smart `signedAt` timestamp.
+CRUD for contracts linked to services, optionally linked to a proposal. This version manages contract metadata only: number, status, service, proposal, signature date, and timestamps. It does not add file upload, signature workflow, monetary values, or contract text generation.
 
-## Model (existing — no migration needed)
+## Model
+
+No migration is needed. The current model is authoritative:
 
 ```prisma
 model Contract {
@@ -22,10 +24,9 @@ model Contract {
   signedAt    DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-
-  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  service  Service  @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
-  proposal Proposal? @relation(fields: [tenantId, serviceId, proposalId], references: [tenantId, serviceId, id], onDelete: Restrict)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  service     Service   @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
+  proposal    Proposal? @relation(fields: [tenantId, serviceId, proposalId], references: [tenantId, serviceId, id], onDelete: Restrict)
 
   @@unique([tenantId, id])
   @@unique([tenantId, number])
@@ -35,106 +36,93 @@ model Contract {
 }
 ```
 
-### Contract Number
+Important: `Contract` has no `title` field. Do not add or reference `title` in this implementation.
 
-Auto-generated on create if not provided: `CT-{seq}` where seq is a zero-padded 5-digit number (e.g. `CT-00001`, `CT-00002`). Computed via `prisma.contract.count() + 1`.
+## Contract Number
 
-Non-editable after creation — `number` not included in update schema.
+Generate `number` on create and keep it non-editable. Format: `CT-00001`.
 
-### Statuses
+Use the highest existing numeric `CT-` suffix for the tenant plus one, not `count() + 1`, because deleted contracts can make `count() + 1` collide with an existing unique number. If create hits Prisma `P2002` for `[tenantId, number]`, retry generation a small number of times before surfacing the error.
+
+## Statuses
 
 | Value | Label | Color |
 |---|---|---|
 | `DRAFT` | Rascunho | zinc |
 | `ISSUED` | Emitido | blue |
 | `SIGNED` | Assinado | green |
-| `COMPLETED` | Concluído | emerald |
+| `COMPLETED` | Concluido | emerald |
 | `CANCELLED` | Cancelado | rose |
 
-### Smart timestamp
+Status stays as `String` in Prisma and is validated with Zod constants.
 
-- `signedAt` set automatically when status → `SIGNED` and `signedAt` is null
-- `signedAt` cleared when status leaves `SIGNED`
+## Smart Timestamp
+
+- Set `signedAt` automatically when status becomes `SIGNED` and `signedAt` is null.
+- Clear `signedAt` when status leaves `SIGNED`.
 
 ## Routes
 
-| Route | Page | Purpose |
-|---|---|---|
-| `/contracts` | `contracts/page.tsx` | Listagem CRUD com filtros de status |
-| `/contracts/new` | `contracts/new/page.tsx` | Criar contrato (aceita `?serviceId=` e `?proposalId=`) |
-| `/contracts/[contractId]` | `contracts/[contractId]/page.tsx` | Detalhe do contrato |
-| `/contracts/[contractId]/edit` | `contracts/[contractId]/edit/page.tsx` | Editar contrato |
+| Route | Purpose |
+|---|---|
+| `/contracts` | list with status/search filters |
+| `/contracts/new` | create form, accepts `?serviceId=` and `?proposalId=` |
+| `/contracts/[contractId]` | detail |
+| `/contracts/[contractId]/edit` | edit status only |
 
-## Feature Module: `src/features/contracts/`
+## Feature Module
+
+Create `src/features/contracts/`:
 
 | File | Purpose |
 |---|---|
 | `actions.ts` | Zod schemas, CRUD, auto-numbering, smart timestamps, tenant-scoped assertions |
-| `ContractForm.tsx` | Client component, create + edit, `useActionState` + redirect |
-| `ContractList.tsx` | Server-compatible table (number, service, client, status, signedAt, link) |
-| `ContractDetail.tsx` | Detail card layout (service, proposal, client, status, number, dates, signedAt) |
-| `ContractStatusBadge.tsx` | Color-coded status badge |
-
-### Actions API
-
-- `generateContractNumber(tenantId)` — returns next `CT-XXXXX`
-- `createContract(tenantId, input)` — validates service + proposal (if provided) belong to tenant, generates number if not provided
-- `updateContract(tenantId, contractId, input)` — no number/serviceId/proposalId change
-- `listContracts(tenantId, filters)` — serviceId, proposalId, status, search
-- `getContract(tenantId, contractId)` — single with service + proposal includes
-
-### ProposalId Validation
-
-If proposalId is provided in create, run `assertProposalBelongsToService(tenantId, serviceId, proposalId)` before insert.
-
-## Sidebar
-
-Add "Contratos" to the "Comercial" group in `SidebarNav.tsx`, between "Propostas" and "Projetos":
-
-```ts
-{ label: "Contratos", href: "/contracts", icon: FileSignature },
-```
+| `ContractForm.tsx` | create/edit form using service selection and status |
+| `ContractList.tsx` | table/list with number, client, service, proposal, status, signedAt |
+| `ContractDetail.tsx` | detail layout using `Contrato {number}` as the heading |
+| `ContractStatusBadge.tsx` | PT-BR status badge |
 
 ## Integrations
 
-### Service Detail (`services/[serviceId]/page.tsx`)
-
-Add "Contratos" section (below Propostas, above Documentos):
-- Query contracts for the service
-- Show compact list: number, status badge, signedAt
-- CTA "Criar Contrato" → `/contracts/new?serviceId=xxx`
-- Wire `service._count.contracts` stat to actual link
-
-### Proposal Detail (`proposals/[proposalId]/page.tsx`)
-
-Add "Contratos" section:
-- Query contracts with matching `proposalId`
-- Show compact list with CTA "Criar Contrato" → `/contracts/new?serviceId=xxx&proposalId=yyy`
+- Sidebar: add `Contratos` to the `Comercial` group with `FileSignature`.
+- Service detail: add a `Contratos` section below `Propostas` and above `Documentos`, plus CTA to `/contracts/new?serviceId=...`.
+- Proposal detail: add a `Contratos` section filtered by `proposalId`, plus CTA to `/contracts/new?serviceId=...&proposalId=...`.
+- Service stats: link the contract count to `/contracts?serviceId=...`.
 
 ## Seed Data
 
-Add to `prisma/seed.ts` (or `scripts/seed-demo.ts`):
-- 2-3 Contracts with Demo Beta prefix, varying statuses (DRAFT, ISSUED, SIGNED)
-- At least one linked to an ACCEPTED proposal
-- At least one without a proposal link
-- Cleanup removes contracts before proposals (FK dependency ordering)
+Add demo contracts after proposals are created and before documents if useful:
+
+- one `SIGNED` contract linked to an accepted proposal;
+- one `ISSUED` or `DRAFT` contract linked only to a service.
+
+Cleanup must delete contracts before proposals/services.
 
 ## Testing
 
-### Unit tests
+Unit tests:
 
-- Contract actions: create, list, update (with status transitions), tenant isolation
-- Number auto-generation logic
-- Status transition logic (signedAt auto-set/clear)
+- schema accepts serviceId/proposalId/status and rejects invalid status;
+- update schema accepts status only and rejects number/service/proposal changes;
+- create validates service ownership;
+- create validates proposal belongs to the same service;
+- number generation uses max existing `CT-` suffix;
+- status transition sets/clears `signedAt`;
+- list/get remain tenant-scoped.
 
-### E2E tests
+E2E tests:
 
-- Login → `/contracts` → create contract (with service select) → verify in list
-- Login → `/services` → open service → create contract → verify in detail section
-- Login → `/proposals` → open proposal → verify linked contracts section
+- create contract from `/contracts/new` and verify list/detail;
+- create contract from service detail and verify service section;
+- create contract from proposal detail and verify proposal section.
 
 ## Gates
 
-```
-pnpm lint && pnpm typecheck && pnpm test && pnpm build && git diff --check
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm test:e2e
+git diff --check
 ```
