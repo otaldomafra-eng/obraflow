@@ -15,6 +15,7 @@ export const updateContractSchema = z.object({
   status: z.enum(CONTRACT_STATUSES).optional(),
 }).strict();
 
+export type ContractStatus = (typeof CONTRACT_STATUSES)[number];
 export type CreateContractInput = z.input<typeof createContractSchema>;
 export type UpdateContractInput = z.input<typeof updateContractSchema>;
 

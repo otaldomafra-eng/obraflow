@@ -50,11 +50,11 @@ const navGroups = [
   },
   {
     label: "Comercial",
-    items: navEntries.slice(4, 6),
+    items: navEntries.slice(4, 7),
   },
   {
     label: "Operacional",
-    items: navEntries.slice(6, 11),
+    items: navEntries.slice(7, 11),
   },
   {
     label: "Sistema",
