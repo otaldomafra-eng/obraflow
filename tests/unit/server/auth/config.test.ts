@@ -18,7 +18,14 @@ vi.mock("@/server/db/client", () => ({
   prisma: prismaMock,
 }));
 
+vi.mock("@/server/auth/password", () => ({
+  verifyPassword: vi.fn(),
+}));
+
+import { verifyPassword } from "@/server/auth/password";
 import { authOptions } from "@/server/auth/config";
+
+const mockedVerify = vi.mocked(verifyPassword);
 
 const credentialsProvider = authOptions.providers[0] as {
   options: {
@@ -27,6 +34,14 @@ const credentialsProvider = authOptions.providers[0] as {
     ) => unknown | Promise<unknown>;
   };
 };
+
+const mockUser = (overrides?: Record<string, unknown>) => ({
+  id: "user-1",
+  email: "admin@obraflow.local",
+  name: "Admin ObraFlow",
+  passwordHash: null,
+  ...overrides,
+});
 
 describe("authOptions credentials provider", () => {
   beforeEach(() => {
@@ -37,39 +52,141 @@ describe("authOptions credentials provider", () => {
     vi.unstubAllEnvs();
   });
 
-  it("allows demo credentials outside development only when explicitly enabled", async () => {
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("DEMO_LOGIN_ENABLED", "true");
-    vi.stubEnv("DEMO_LOGIN_PASSWORD", "obraflow123");
-    prismaMock.user.findUnique.mockResolvedValue({
-      id: "user-1",
-      email: "admin@obraflow.local",
-      name: "Admin ObraFlow",
+  describe("passwordHash login", () => {
+    it("allows login with correct password hash", async () => {
+      prismaMock.user.findUnique.mockResolvedValue(
+        mockUser({ passwordHash: "$2b$10$hashedvalue" }),
+      );
+      mockedVerify.mockResolvedValue(true);
+
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "admin@obraflow.local",
+            password: "correct-password",
+          }),
+        ),
+      ).resolves.toMatchObject({
+        id: "user-1",
+        email: "admin@obraflow.local",
+        name: "Admin ObraFlow",
+      });
     });
 
-    await expect(
-      Promise.resolve(credentialsProvider.options.authorize({
-        email: "admin@obraflow.local",
-        password: "obraflow123",
-      })),
-    ).resolves.toMatchObject({
-      id: "user-1",
-      email: "admin@obraflow.local",
-      name: "Admin ObraFlow",
+    it("rejects login with incorrect password hash", async () => {
+      prismaMock.user.findUnique.mockResolvedValue(
+        mockUser({ passwordHash: "$2b$10$hashedvalue" }),
+      );
+      mockedVerify.mockResolvedValue(false);
+
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "admin@obraflow.local",
+            password: "wrong-password",
+          }),
+        ),
+      ).resolves.toBeNull();
     });
   });
 
-  it("keeps demo credentials disabled in production by default", async () => {
-    vi.stubEnv("NODE_ENV", "production");
-    vi.stubEnv("DEMO_LOGIN_PASSWORD", "obraflow123");
+  describe("demo fallback login", () => {
+    it("allows demo login in development", async () => {
+      vi.stubEnv("NODE_ENV", "development");
+      vi.stubEnv("DEMO_LOGIN_PASSWORD", "obraflow123");
+      prismaMock.user.findUnique.mockResolvedValue(
+        mockUser({ passwordHash: null }),
+      );
 
-    await expect(
-      Promise.resolve(credentialsProvider.options.authorize({
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "admin@obraflow.local",
+            password: "obraflow123",
+          }),
+        ),
+      ).resolves.toMatchObject({
+        id: "user-1",
         email: "admin@obraflow.local",
-        password: "obraflow123",
-      })),
-    ).resolves.toBeNull();
+        name: "Admin ObraFlow",
+      });
+    });
 
-    expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+    it("allows demo login in production when explicitly enabled", async () => {
+      vi.stubEnv("NODE_ENV", "production");
+      vi.stubEnv("DEMO_LOGIN_ENABLED", "true");
+      vi.stubEnv("DEMO_LOGIN_PASSWORD", "obraflow123");
+      prismaMock.user.findUnique.mockResolvedValue(
+        mockUser({ passwordHash: null }),
+      );
+
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "admin@obraflow.local",
+            password: "obraflow123",
+          }),
+        ),
+      ).resolves.toMatchObject({
+        id: "user-1",
+        email: "admin@obraflow.local",
+        name: "Admin ObraFlow",
+      });
+    });
+
+    it("rejects demo login in production when not enabled", async () => {
+      vi.stubEnv("NODE_ENV", "production");
+      vi.stubEnv("DEMO_LOGIN_PASSWORD", "obraflow123");
+      prismaMock.user.findUnique.mockResolvedValue(
+        mockUser({ passwordHash: null }),
+      );
+
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "admin@obraflow.local",
+            password: "obraflow123",
+          }),
+        ),
+      ).resolves.toBeNull();
+    });
+  });
+
+  describe("edge cases", () => {
+    it("rejects when email is missing", async () => {
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "",
+            password: "any",
+          }),
+        ),
+      ).resolves.toBeNull();
+    });
+
+    it("rejects when password is missing", async () => {
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "admin@obraflow.local",
+            password: "",
+          }),
+        ),
+      ).resolves.toBeNull();
+    });
+
+    it("rejects when user is not found", async () => {
+      vi.stubEnv("NODE_ENV", "development");
+      prismaMock.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "unknown@obraflow.local",
+            password: "any",
+          }),
+        ),
+      ).resolves.toBeNull();
+    });
   });
 });
