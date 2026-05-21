@@ -70,7 +70,7 @@ test.describe("portal do cliente", () => {
     await expect(page.getByText("Portal ativo")).toBeVisible({ timeout: 10000 });
 
     // Read the portal URL from the readonly input
-    const portalUrl = await page.getByRole("textbox").inputValue();
+    const portalUrl = await page.getByRole("textbox", { name: "Link do portal" }).inputValue();
 
     // Verify portal URL format
     expect(portalUrl).toContain("/portal/");
@@ -85,7 +85,7 @@ test.describe("portal do cliente", () => {
 
     // Verify portal shows service data
     await expect(portalPage.getByText(`${PREFIX} - Serviço`)).toBeVisible({ timeout: 10000 });
-    await expect(portalPage.getByText(`${PREFIX} - Cliente`)).toBeVisible();
+    await expect(portalPage.getByText(`${PREFIX} - Cliente`, { exact: true })).toBeVisible();
 
     // Verify portal shows CLIENT_VISIBLE document
     await expect(portalPage.getByText(`${PREFIX} - Memorial`)).toBeVisible();

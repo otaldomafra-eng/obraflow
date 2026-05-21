@@ -27,9 +27,7 @@ export const authOptions: NextAuthOptions = {
         if (user.passwordHash) {
           const valid = await verifyPassword(credentials.password, user.passwordHash);
 
-          if (!valid) return null;
-
-          return { id: user.id, email: user.email, name: user.name };
+          if (valid) return { id: user.id, email: user.email, name: user.name };
         }
 
         const isDemoAllowed =

@@ -90,6 +90,66 @@ describe("authOptions credentials provider", () => {
     });
   });
 
+  describe("hash fallback to demo in dev/test", () => {
+    it("falls back to demo login when passwordHash is present but wrong in development", async () => {
+      vi.stubEnv("NODE_ENV", "development");
+      vi.stubEnv("DEMO_LOGIN_PASSWORD", "obraflow123");
+      prismaMock.user.findUnique.mockResolvedValue(
+        mockUser({ passwordHash: "$2b$10$hashedvalue" }),
+      );
+      mockedVerify.mockResolvedValue(false);
+
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "admin@obraflow.local",
+            password: "obraflow123",
+          }),
+        ),
+      ).resolves.toMatchObject({
+        id: "user-1",
+        email: "admin@obraflow.local",
+        name: "Admin ObraFlow",
+      });
+    });
+
+    it("does NOT fall back to demo in production when passwordHash is wrong", async () => {
+      vi.stubEnv("NODE_ENV", "production");
+      vi.stubEnv("DEMO_LOGIN_PASSWORD", "obraflow123");
+      prismaMock.user.findUnique.mockResolvedValue(
+        mockUser({ passwordHash: "$2b$10$hashedvalue" }),
+      );
+      mockedVerify.mockResolvedValue(false);
+
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "admin@obraflow.local",
+            password: "obraflow123",
+          }),
+        ),
+      ).resolves.toBeNull();
+    });
+
+    it("returns null when passwordHash is wrong, DEMO_LOGIN_PASSWORD is unset, in dev", async () => {
+      vi.stubEnv("NODE_ENV", "development");
+      vi.stubEnv("DEMO_LOGIN_PASSWORD", "");
+      prismaMock.user.findUnique.mockResolvedValue(
+        mockUser({ passwordHash: "$2b$10$hashedvalue" }),
+      );
+      mockedVerify.mockResolvedValue(false);
+
+      await expect(
+        Promise.resolve(
+          credentialsProvider.options.authorize({
+            email: "admin@obraflow.local",
+            password: "wrong",
+          }),
+        ),
+      ).resolves.toBeNull();
+    });
+  });
+
   describe("demo fallback login", () => {
     it("allows demo login in development", async () => {
       vi.stubEnv("NODE_ENV", "development");

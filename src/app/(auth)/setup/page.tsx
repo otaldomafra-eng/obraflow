@@ -27,7 +27,7 @@ export default async function SetupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50">
-      <div className="w-full max-w-sm rounded-xl border bg-white p-8 shadow-sm">
+      <div className="w-full max-w-sm rounded-xl border bg-white p-8 text-zinc-900 shadow-sm">
         <h1 className="mb-2 text-2xl font-bold tracking-tight">
           Configurar ObraFlow
         </h1>

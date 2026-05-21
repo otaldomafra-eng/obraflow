@@ -24,13 +24,6 @@ body {
   font-family: var(--font-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #09090b;
-    --color-foreground: #fafafa;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

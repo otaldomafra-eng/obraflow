@@ -24,6 +24,7 @@ export function PortalClient({
         <div className="flex items-center gap-2">
           <input
             readOnly
+            aria-label="Link do portal"
             value={`${typeof window !== "undefined" ? window.location.origin : ""}/portal/${portalToken}`}
             className="flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600"
             onClick={(e) => e.currentTarget.select()}
