@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 import type { getDocument } from "./actions";
 import { DocumentVisibilityBadge } from "./DocumentVisibilityBadge";
@@ -49,11 +50,17 @@ export function DocumentDetail({ document: doc }: Props) {
       {isInternalUpload && isImage && (
         <div className="rounded-xl border border-zinc-200 bg-white p-6">
           <h2 className="mb-4 text-base font-semibold">Preview</h2>
-          <img
-            src={downloadUrl}
-            alt={doc.title}
-            className="max-w-full rounded-lg border"
-          />
+          <div className="relative w-full h-auto max-h-96 overflow-hidden rounded-lg border bg-zinc-50">
+            <Image
+              src={downloadUrl}
+              alt={doc.title}
+              width={0}
+              height={0}
+              sizes="100vw"
+              className="w-full h-auto object-contain"
+              unoptimized
+            />
+          </div>
         </div>
       )}
 
