@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft. Aguardando aprovacao do Codex.
+Aprovado com ajustes Codex em 2026-05-20.
 
 ## Objetivo
 
@@ -10,30 +10,30 @@ Preparar o ObraFlow para rodar em producao usando exclusivamente planos gratuito
 
 - **Vercel Hobby** para o app Next.js.
 - **Supabase Free** para PostgreSQL gerenciado.
-- **Subdominio proprio** para acesso do escritorio.
+- **Dominio Vercel gratuito** (`<projeto>.vercel.app`) neste momento; subdominio proprio fica para etapa posterior.
 - **Sem storage pago, sem email transacional pago, sem VPS** neste momento.
 
 ## Problemas Atuais
 
 1. O codigo esta pronto para producao (hash, /setup, seed guard, env validation), mas nunca foi implantado.
 2. As envs de producao precisam ser configuradas manualmente na Vercel e no Supabase.
-3. `NEXTAUTH_URL` precisa apontar para o dominio real de producao.
-4. `NEXTAUTH_SECRET` precisa ser um valor forte gerado para producao.
-5. `DEFAULT_TENANT_SLUG` so pode ser definido apos criar o primeiro tenant via /setup.
-6. Dados demo do seed local nao devem poluir o banco de producao.
-7. Nao ha procedimento documentado de rollback/recuperacao.
-8. Subdominio proprio precisa ser configurado no DNS apontando para Vercel.
+3. `prisma.config.ts` usa `requireEnv("DATABASE_URL")`, portanto o build na Vercel exige `DATABASE_URL` configurada antes do primeiro deploy.
+4. `NEXTAUTH_URL` precisa apontar para o dominio de producao (`<projeto>.vercel.app`).
+5. `NEXTAUTH_SECRET` precisa ser um valor forte gerado para producao.
+6. `DEFAULT_TENANT_SLUG` so pode ser definido apos criar o primeiro tenant via /setup.
+7. Dados demo do seed local nao devem poluir o banco de producao.
+8. Nao ha procedimento documentado de rollback/recuperacao.
 
 ## Arquitetura de Producao Gratuita Proposta
 
 ```
-[Cliente] --> DNS (subdominio) --> Vercel Edge Network
-                                      |
-                               Vercel Hobby (Next.js)
-                                      |
-                            Prisma + Supavisor Pooler
-                                      |
-                              Supabase Free (PostgreSQL)
+[Cliente] --> Vercel Edge Network
+                  |
+           Vercel Hobby (Next.js)
+                  |
+        Prisma + Supavisor Pooler
+                  |
+          Supabase Free (PostgreSQL)
 ```
 
 ### Vercel Hobby como Runtime
@@ -46,7 +46,7 @@ Preparar o ObraFlow para rodar em producao usando exclusivamente planos gratuito
 | Limite de builds | 6.000 min/mes (Hobby) |
 | Concorrencia | 1 concurrent build |
 | Cold start | Tipico 500ms-2s em Hobby |
-| Dominio | `<projeto>.vercel.app` + custom domain |
+| Dominio | `<projeto>.vercel.app` |
 | Git integration | Autodetect via `vercel.json` ou dashboard |
 
 ### Supabase Free como Banco
@@ -59,25 +59,24 @@ Preparar o ObraFlow para rodar em producao usando exclusivamente planos gratuito
 | Row level security | Obrigatorio para Data API |
 | Automatic pause | Apos 1 semana de inatividade (dados mantidos) |
 | Backups | Nao ha PITR nativo no Free; export manual via dashboard |
-| Pooler | Supavisor na porta 5432 (session) ou 6543 (transaction) |
+| Pooler runtime (Vercel) | Supavisor transaction pooler na porta 6543 |
+| Pooler migrations (local) | Supavisor session pooler na porta 5432 |
 
-### Dominio/Subdominio Proprio
+### Dominio
 
-- Comprar dominio (ex: `obraflow.eng.br`, `escritorio.app`) via registro .br, Cloudflare ou similar.
-- Apontar DNS para Vercel (CNAME `cname.vercel.com` ou A record para Vercel Edge IPs).
-- Configurar custom domain no dashboard da Vercel (+ dominio).
-- SSL automático via Vercel (certificado gerado automaticamente).
+Decisao: comecar com o dominio gratuito da Vercel (`<projeto>.vercel.app`). Subdominio proprio fica para etapa posterior, quando houver necessidade e orcamento.
 
 ## Estrategia para Primeiro Admin
 
 1. Deploy inicial roda com banco vazio (sem seed, sem admin).
-2. Acessar `https://<dominio>/setup`.
-3. /setup detecta que nao existe ADMIN, exibe formulario.
-4. Preencher nome, email, senha, nome do escritorio, slug do escritorio.
-5. /setup cria tenant, user com passwordHash, membership ADMIN.
-6. Fazer login com as credenciais criadas.
-7. Apos login, definir `DEFAULT_TENANT_SLUG` no dashboard da Vercel com o slug escolhido.
-8. Redeploy (ou apenas restart) para que o JWT callback resolva o tenantId.
+2. Antes do deploy, `DATABASE_URL` ja deve estar configurada na Vercel (exigida pelo build).
+3. Acessar `https://<projeto>.vercel.app/setup`.
+4. /setup detecta que nao existe ADMIN, exibe formulario.
+5. Preencher nome, email, senha, nome do escritorio, slug do escritorio.
+6. /setup cria tenant, user com passwordHash, membership ADMIN.
+7. Fazer login com as credenciais criadas.
+8. Apos login, definir `DEFAULT_TENANT_SLUG` no dashboard da Vercel com o slug escolhido.
+9. Redeploy para que o JWT callback resolva o tenantId.
 
 ## Estrategia para Nao Vazar Dados Demo
 
@@ -103,16 +102,19 @@ O seed local cria dados com prefixo "demo-" em externalKeys e o usuario `admin@o
 
 ## Variaveis Obrigatorias de Producao
 
-| Variavel | Obrigatoria | Valor esperado |
+| Variavel | Obrigatoria | Como obter / valor |
 |---|---|---|
-| `DATABASE_URL` | Sim | Supavisor transaction pooler (porta 6543) |
-| `NEXTAUTH_URL` | Sim | `https://<dominio>` |
-| `NEXTAUTH_SECRET` | Sim | `openssl rand -base64 32` |
-| `DEFAULT_TENANT_SLUG` | Sim (apos /setup) | Slug do tenant criado |
+| `DATABASE_URL` | Sim | Connection string do Supabase Free. Para runtime Vercel: transaction pooler (`<host>:6543`). Para migrations via terminal local: session pooler (`<host>:5432`). |
+| `NEXTAUTH_URL` | Sim | `https://<projeto>.vercel.app` |
+| `NEXTAUTH_SECRET` | Sim | `openssl rand -base64 32` no terminal local |
+| `DEFAULT_TENANT_SLUG` | Sim (apos /setup) | Slug do tenant criado via /setup |
 | `DEMO_LOGIN_ENABLED` | Nao (ausente = false) | Nao configurar |
 | `DEMO_LOGIN_PASSWORD` | Nao (ausente = sem fallback) | Nao configurar |
 | `AI_PROVIDER` | Sim | `mock` |
-| `OPENAI_API_KEY` | Nao | Nao configurar ate bloco de IA |
+
+## Preview Deployments
+
+Decisao inicial: nao usar Preview Deployments com o banco de producao para testes com escrita. Para v1 gratuita, o foco e em Production apenas. Se previews forem necessarios depois, criar um Supabase separado ou banco isolado.
 
 ## Limitacoes do Plano Gratis
 
@@ -166,13 +168,11 @@ Se o deploy quebrar o login ou o setup:
 1. Verificar se `/setup` ainda responde (rota publica).
 2. Se `/setup` redirecionar para `/sign-in` mas login nao funciona, verificar logs da Vercel.
 3. Se o banco estiver corrompido, restaurar do ultimo backup.
-4. Se o dominio estiver quebrado, verificar DNS e SSL no dashboard da Vercel.
 
 ## Criterios de Pronto para Producao Inicial
 
 - [ ] Vercel Hobby deployado com build passando.
-- [ ] Supabase Free com migrations aplicadas (`pnpm db:deploy`).
-- [ ] Dominio/subdominio resolvendo para Vercel com SSL ativo.
+- [ ] Supabase Free com migrations aplicadas (`pnpm db:deploy` com session pooler).
 - [ ] `/setup` acessivel e funcional.
 - [ ] Login com admin criado via /setup funciona.
 - [ ] Login demo NAO funciona em producao.
@@ -186,10 +186,11 @@ Se o deploy quebrar o login ou o setup:
 
 - Email transacional (recuperacao de senha, convites).
 - Storage S3 real (uploads de documentos).
-- Dominoio proprio registrado (planejar, mas nao executar registro).
+- Subdominio proprio (planejado para etapa posterior).
 - Monitoramento/alertas.
 - CI/CD configurado.
 - Backup automatizado.
+- Preview Deployments.
 - Rate limiting.
 - Google OAuth ou outros providers.
 - Gestao de usuarios/admins.

@@ -2,11 +2,13 @@
 
 > **Para agentic workers:** Este bloco e de **planejamento e documentacao apenas**. Nenhum deploy deve ser executado. Nao alterar codigo de producao. Nao criar migrations. Nao mexer em secrets.
 
-**Goal:** Implantar o ObraFlow em Vercel Hobby + Supabase Free com subdominio proprio, seguindo procedimento manual documentado.
+**Goal:** Implantar o ObraFlow em Vercel Hobby + Supabase Free com dominio gratuito `<projeto>.vercel.app`, seguindo procedimento manual documentado.
 
-**Arquitetura:** Next.js 16 server-side na Vercel, Prisma + Supavisor pooler para Supabase, autenticacao por Credentials + passwordHash, /setup para primeiro admin.
+**Arquitetura:** Next.js 16 server-side na Vercel, Prisma + Supavisor pooler para Supabase (transaction pooler porta 6543 para runtime, session pooler porta 5432 para migrations locais), autenticacao por Credentials + passwordHash, /setup para primeiro admin.
 
 **Tech Stack:** Vercel Hobby, Supabase Free, Next.js 16, NextAuth v4, Prisma, bcryptjs.
+
+**Repositorio:** `otaldomafra-eng/obraflow`
 
 ---
 
@@ -16,7 +18,6 @@
 - Nao rodar deploy, push ou merge.
 - Nao criar migrations.
 - Nao mexer em secrets reais.
-- Nao registrar dominios.
 - Apenas documentacao e planejamento.
 
 ---
@@ -27,9 +28,9 @@
 1. Revisar status do Git e decidir push de main
 2. Validar README publico e ausencia de secrets
 3. Configurar projeto na Vercel (importar repo)
-4. Configurar env vars na Vercel
-5. Configurar dominio/subdominio na Vercel + DNS
-6. Rodar migrations em producao (pnpm db:deploy)
+4. Configurar env vars na Vercel (obrigatorio: DATABASE_URL antes do build)
+5. Dominio Vercel gratuito (sem custom domain nesta etapa)
+6. Rodar migrations em producao (pnpm db:deploy, com session pooler)
 7. Acessar /setup e criar primeiro admin
 8. Definir DEFAULT_TENANT_SLUG apos setup
 9. Rodar smoke test em producao
@@ -86,35 +87,24 @@ grep -r "aws-1-us-west-2" README.md .env.example
 
 ## Task 3: Configurar Projeto na Vercel
 
-**Descricao:** Conectar o repositorio GitHub a Vercel Hobby.
+**Descricao:** Conectar o repositorio `otaldomafra-eng/obraflow` a Vercel Hobby.
 
 **Passos:**
 
 1. Acessar https://vercel.com/new.
-2. Importar repositorio `obraflow/obraflow` (ou nome correto).
+2. Importar repositorio `otaldomafra-eng/obraflow`.
 3. Framework: Next.js (autodetectado).
 4. Root directory: `./` (padrao).
-5. Build command: `pnpm build` (ou o detectado).
+5. Build command: usar o padrao do `package.json` (`pnpm build`), que a Vercel detecta automaticamente. Nao configurar manualmente a menos que o autodetect falhe.
 6. Output directory: `.next` (padrao).
-7. Environment variables: pular por enquanto (serao configuradas na Task 4).
-8. Deploy: nao clicar em "Deploy" ainda.
+7. Environment variables: **ATENCAO** — `DATABASE_URL` e obrigatoria no build porque `prisma.config.ts` usa `requireEnv("DATABASE_URL")`. Configurar ANTES de clicar em "Deploy".
+8. Deploy: nao clicar em "Deploy" ainda (as envs serao configuradas na Task 4).
 
 **Observacoes:**
-- O build command `pnpm build` no `package.json` ja executa `prisma generate && next build`. Isso funciona na Vercel, mas o Prisma Client sera gerado com as variaveis de ambiente da build. Importante: `DATABASE_URL` nao precisa estar presente no build time para Next.js (apenas para `prisma generate`). Se `prisma generate` falhar sem `DATABASE_URL`, usar `DATABASE_URL` dummy ou `PRISMA_GENERATE_DATABASE_URL` como workaround.
+- O build command `pnpm build` no `package.json` ja executa `prisma generate && next build`.
+- `prisma.config.ts` usa `requireEnv("DATABASE_URL")` para instanciar o adapter PrismaPg. Como `prisma generate` carrega `prisma.config.ts`, a `DATABASE_URL` deve estar disponivel no build time da Vercel. Se nao estiver, o build falha.
+- O `vercel.json` atual contem apenas `{ "framework": "nextjs", "regions": ["pdx1"] }`. Nao ha `buildCommand` ou `installCommand` configurados — a Vercel usa autodetect.
 - A Vercel Hobby nao suporta `output: "standalone"`. Manter configuracao atual.
-
-**Arquivos:**
-- `vercel.json` — deve existir na raiz (ja existe). Verificar se precisa de ajustes:
-  ```json
-  {
-    "buildCommand": "pnpm build",
-    "framework": "nextjs",
-    "installCommand": "pnpm install"
-  }
-  ```
-
-**Tambem verificar:**
-- `prisma.config.ts` — se usa `requireEnv("DATABASE_URL")`, pode falhar no build time. Verificar se o arquivo e executado durante `prisma generate`. Se sim, `DATABASE_URL` precisara estar disponivel no build time.
 
 ---
 
@@ -126,12 +116,11 @@ grep -r "aws-1-us-west-2" README.md .env.example
 
 | Variavel | Como obter |
 |---|---|
-| `DATABASE_URL` | Connection string do Supabase Free (transaction pooler porta 6543) |
-| `NEXTAUTH_URL` | `https://<projeto>.vercel.app` (ou dominio personalizado depois) |
+| `DATABASE_URL` | Connection string do Supabase Free. Para runtime Vercel: **transaction pooler** (`<host>:6543`). Obrigatoria no build time. |
+| `NEXTAUTH_URL` | `https://<projeto>.vercel.app` |
 | `NEXTAUTH_SECRET` | `openssl rand -base64 32` no terminal local |
-| `DEFAULT_TENANT_SLUG` | Deixar vazio por enquanto; definir apos /setup |
+| `DEFAULT_TENANT_SLUG` | Deixar vazio por enquanto; definir apos /setup (Task 8) |
 | `AI_PROVIDER` | `mock` |
-| `PRISMA_GENERATE_DATABASE_URL` | (Opcional) URL dummy caso `prisma generate` exija DATABASE_URL no build time |
 
 **Variaveis que NAO devem ser configuradas:**
 - `DEMO_LOGIN_ENABLED` — ausente = false
@@ -139,41 +128,25 @@ grep -r "aws-1-us-west-2" README.md .env.example
 - `OPENAI_API_KEY` — ainda nao implementado
 
 **Importante:**
+- `DATABASE_URL` deve ser configurada **antes do primeiro build** porque `prisma.config.ts` exige.
 - Marcar todas como "Production" (nao "Preview" ou "Development").
-- As envs de Preview podem replicar as de Production ou usar um banco separado.
+- Preview Deployments: para v1, nao usar. Se necessario depois, usar banco Supabase separado.
 - Nao copiar envs para o codigo. Usar apenas o dashboard da Vercel.
 
 ---
 
-## Task 5: Configurar Dominio/Subdominio
+## Task 5: Dominio Vercel Gratuito
 
-**Descricao:** Apontar um subdominio proprio para a Vercel.
+**Descricao:** Usar o dominio gratuito fornecido pela Vercel. Subdominio proprio fica para etapa posterior.
 
-**Opcoes de Dominio:**
+**Passos:**
 
-| Opcao | Custo | Complexidade |
-|---|---|---|
-| `obraflow.vercel.app` | Gratis | Nenhuma (ja incluso no Hobby) |
-| `app.obraflow.com.br` | ~R$ 40/ano | Registrar dominio, configurar DNS |
-| `obraflow.eng.br` | ~R$ 60/ano | Registrar dominio, configurar DNS |
-| `escritorio.seudominio.com` | Ja possui | Apenas configurar DNS |
+1. Apos o deploy, o projeto estara disponivel em `https://<projeto>.vercel.app`.
+2. Esse e o dominio de producao. Usar como `NEXTAUTH_URL`.
+3. Nao comprar dominio. Nao configurar DNS. Nao configurar custom domain.
+4. Se no futuro houver necessidade de subdominio proprio, planejar em bloco separado.
 
-**Passos para dominio personalizado:**
-
-1. Comprar dominio (se necessario) em registro .br, Cloudflare, ou similar.
-2. No dashboard da Vercel > Project > Settings > Domains.
-3. Adicionar dominio: `app.obraflow.com.br` (exemplo).
-4. Vercel exibira as instrucoes de DNS:
-   - Type: CNAME
-   - Name: `app` (ou `@`)
-   - Target: `cname.vercel.com`
-   - (Ou A records para IPs Vercel se apex domain)
-5. No painel DNS do provedor, criar o registro.
-6. Aguardar propagacao (alguns minutos a horas).
-7. SSL gerado automaticamente pela Vercel (certificado Lets Encrypt).
-8. Apos SSL ativo, atualizar `NEXTAUTH_URL` para o novo dominio.
-
-**Observacao:** Se ainda nao tiver dominio, comecar com `obraflow.vercel.app` e planejar dominio proprio. O `NEXTAUTH_URL` pode ser alterado depois sem perder sessoes (novo login sera necessario).
+**Observacao:** O dominio `vercel.app` ja inclui SSL automatico (certificado Lets Encrypt). Nenhuma configuracao adicional necessaria.
 
 ---
 
@@ -187,7 +160,9 @@ pnpm db:deploy
 ```
 
 **Pre-requisitos:**
-- `DATABASE_URL` apontando para o Supabase de producao (transaction pooler, porta 6543).
+- `DATABASE_URL` apontando para o Supabase de producao.
+- Para migrations via terminal local: usar **session pooler** (`<host>:5432`), conforme README.
+- Para runtime Vercel: usar **transaction pooler** (`<host>:6543`), configurado nas envs da Vercel.
 - `NODE_ENV` NAO precisa ser "production" para rodar migrations.
 
 **Checklist de seguranca:**
@@ -210,7 +185,7 @@ pnpm exec prisma db push --dry-run  # verifica se schema esta sincronizado
 
 **Passos:**
 
-1. Abrir `https://<dominio>/setup`.
+1. Abrir `https://<projeto>.vercel.app/setup`.
 2. Preencher formulario:
    - Nome: nome do admin responsavel.
    - Email: email real (sera usado para login).
@@ -239,11 +214,11 @@ pnpm exec prisma db push --dry-run  # verifica se schema esta sincronizado
 1. No dashboard da Vercel > Project > Settings > Environment Variables.
 2. Adicionar `DEFAULT_TENANT_SLUG` com o valor do slug criado em Task 7.
 3. Marcar como "Production".
-4. Fazer redeploy (ou a Vercel pode reiniciar automaticamente).
+4. Fazer redeploy.
 5. Apos redeploy, verificar se o login ainda funciona e o tenantId e resolvido.
 
 **Por que isso e necessario:**
-O JWT callback em `src/server/auth/config.ts` usa `DEFAULT_TENANT_SLUG` para buscar o tenantId e incluir no token JWT. Sem essa env, o callback tenta auto-detectar (funciona se houver apenas 1 membership). Com a env, e explicito e seguro.
+O JWT callback em `src/server/auth/config.ts` usa `DEFAULT_TENANT_SLUG` para buscar o tenantId e incluir no token JWT. Sem essa env, o callback tenta auto-detectar: se existir apenas 1 membership para o usuario, funciona; se houver mais de 1, lanca erro. Em producao, a env deve ser configurada explicitamente para evitar surpresas.
 
 ---
 
@@ -278,15 +253,14 @@ O JWT callback em `src/server/auth/config.ts` usa `DEFAULT_TENANT_SLUG` para bus
 **Descricao:** Registrar as informacoes operacionais em local seguro (Obsidian, Notion, ou docs internas).
 
 **O que documentar:**
-- URL de producao e subdominio.
-- Provedor DNS e credenciais de acesso.
-- Email e provedor do registro de dominio.
+- URL de producao (`https://<projeto>.vercel.app`).
 - `NEXTAUTH_SECRET` (guardado em cofre de senhas, nunca no codigo).
 - `DATABASE_URL` do pooler (guardado em cofre de senhas).
 - Procedimento de backup manual.
-- Procedimento de rollback (Task "Rollback e Recuperacao" do spec).
+- Procedimento de rollback.
 - Data do primeiro deploy e primeiro admin criado.
 - Quem tem acesso ao dashboard Vercel e Supabase.
+- Observacao: dominio proprio sera configurado em etapa posterior.
 
 **Nao documentar em local publico:**
 - Nao colocar secrets no README, no Obsidian compartilhado publicamente, ou em repositorio git.
@@ -302,11 +276,11 @@ O JWT callback em `src/server/auth/config.ts` usa `DEFAULT_TENANT_SLUG` para bus
 git add docs/superpowers/specs/2026-05-20-free-production-deploy-design.md docs/superpowers/plans/2026-05-20-free-production-deploy.md
 git status --short
 git diff --check
-git commit -m "docs: add free production deploy plan"
+git commit -m "docs: correct free production deploy plan"
 ```
 
 **Verificacao:**
-- `git status` mostra apenas os dois arquivos novos.
+- `git status` mostra apenas os dois arquivos modificados.
 - `git diff --check` sem erros de whitespace.
 - Commits locais apenas (sem push).
 
@@ -316,11 +290,16 @@ git commit -m "docs: add free production deploy plan"
 
 | Decisao | Opcao Escolhida |
 |---|---|
-| Dominio inicial | `obraflow.vercel.app` (gratis), dominio proprio depois |
-| Build time DATABASE_URL | Se `prisma generate` falhar sem ela, usar `PRISMA_GENERATE_DATABASE_URL` dummy |
-| Pooler | Transaction pooler (porta 6543) para runtime Vercel |
+| Repositorio | `otaldomafra-eng/obraflow` |
+| Dominio | `<projeto>.vercel.app` (gratuito). Subdominio proprio em etapa posterior. |
+| Build time `DATABASE_URL` | Obrigatoria antes do primeiro build. `prisma.config.ts` usa `requireEnv("DATABASE_URL")`. |
+| Pooler (runtime Vercel) | Supavisor transaction pooler (porta 6543) |
+| Pooler (migrations local) | Supavisor session pooler (porta 5432), conforme README |
+| `vercel.json` | Mantido como esta: `{ "framework": "nextjs", "regions": ["pdx1"] }`. Build command por autodetect. |
+| Preview Deployments | Nao usar na v1. Se necessario, criar Supabase separado. |
 | `NEXTAUTH_SECRET` | Gerar com `openssl rand -base64 32`, nunca versionar |
 | `DEMO_LOGIN_ENABLED` | Ausente em producao (padrao false) |
 | `AI_PROVIDER` | `mock` ate bloco de IA ser implementado |
+| `DEFAULT_TENANT_SLUG` | Deploy sem a env, criar tenant em /setup, depois configurar e redeploy. O fallback de auto-detect funciona com 1 membership, mas o recomendado e configurar explicitamente. |
 | Backup pre-deploy | Export manual via `pg_dump` antes de migrations destrutivas |
 | Rollback | Redeploy de versao anterior no dashboard Vercel |
