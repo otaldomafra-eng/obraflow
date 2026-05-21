@@ -164,4 +164,72 @@ test.describe("fluxo de documentos", () => {
     // Verify document title appears in the documents section
     await expect(page.getByText(`${PREFIX} - Contrato`)).toBeVisible({ timeout: 5000 });
   });
+
+  test("cria documento com upload de PDF e visualiza no detalhe", async ({ page }) => {
+    test.setTimeout(90000);
+
+    // Login
+    await page.goto("/sign-in");
+    await page.getByLabel("Email").fill("admin@obraflow.local");
+    await page.getByLabel("Senha").fill("obraflow123");
+    await page.getByRole("button", { name: /entrar/i }).click();
+    await page.waitForURL("/dashboard", { timeout: 15000 });
+
+    // Create client
+    await page.goto("/clients/new");
+    await page.getByLabel("Nome *").fill(`${PREFIX} - Cliente Upload`);
+    await page.getByRole("button", { name: "Salvar Cliente" }).click();
+    await page.waitForFunction(() => {
+      return window.location.pathname.startsWith("/clients/") && !window.location.pathname.endsWith("/new");
+    }, { timeout: 15000 });
+    const clientId = page.url().split("/").pop()!;
+
+    // Create property
+    await page.goto(`/properties/new?clientId=${clientId}`);
+    await page.getByLabel("Nome do Imóvel *").fill(`${PREFIX} - Imóvel Upload`);
+    await page.getByRole("button", { name: "Salvar Imóvel" }).click();
+    await page.waitForFunction(() => {
+      return window.location.pathname.startsWith("/properties/") && !window.location.pathname.endsWith("/new");
+    }, { timeout: 15000 });
+    const propertyId = page.url().split("/").pop()!;
+
+    // Create service
+    await page.goto(`/services/new?clientId=${clientId}&propertyId=${propertyId}`);
+    await page.getByLabel("Título *").fill(`${PREFIX} - Serviço Upload`);
+    await page.getByLabel("Tipo de Serviço *").selectOption("TECHNICAL_PROJECT");
+    await page.getByRole("button", { name: "Criar Serviço" }).click();
+    await page.waitForFunction(() => {
+      return window.location.pathname.startsWith("/services/") && !window.location.pathname.endsWith("/new");
+    }, { timeout: 15000 });
+    const serviceId = page.url().split("/").pop()!;
+
+    // Navigate to document creation
+    await page.goto(`/documents/new?serviceId=${serviceId}`);
+
+    // Switch to upload mode
+    await page.getByRole("button", { name: /upload de arquivo/i }).click();
+
+    // Create a small PDF file
+    const pdfContent = Buffer.from("%PDF-1.4 test content");
+    await page.setInputFiles('input[type="file"]', {
+      name: "test-document.pdf",
+      mimeType: "application/pdf",
+      buffer: pdfContent,
+    });
+
+    // Fill form
+    await page.getByLabel("Título *").fill(`${PREFIX} - PDF Upload`);
+    await page.getByLabel("Visibilidade").selectOption("CLIENT_VISIBLE");
+    await page.getByRole("button", { name: "Adicionar Documento" }).click();
+
+    // Wait for redirect
+    await page.waitForFunction(() => {
+      return window.location.pathname.startsWith("/documents/") && !window.location.pathname.endsWith("/new");
+    }, { timeout: 15000 });
+
+    // Verify document detail shows upload info
+    await expect(page.getByRole("heading", { name: `${PREFIX} - PDF Upload` })).toBeVisible();
+    await expect(page.getByText("Baixar Arquivo")).toBeVisible();
+    await expect(page.getByText("test-document.pdf")).toBeVisible();
+  });
 });

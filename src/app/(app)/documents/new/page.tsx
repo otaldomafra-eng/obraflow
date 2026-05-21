@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 import { Suspense } from "react";
 
 import { requireTenantId } from "@/server/auth/tenant";
-import { createDocument } from "@/features/documents/actions";
+import { createDocument, uploadDocument } from "@/features/documents/actions";
 import { listServiceOptions } from "@/features/services/actions";
 import { DocumentForm } from "@/features/documents/DocumentForm";
 
@@ -15,14 +15,43 @@ export default async function NewDocumentPage() {
   async function handleCreate(formData: FormData) {
     "use server";
 
+    const mode = formData.get("mode") as string;
     const proposalId = (formData.get("proposalId") as string) || undefined;
+    const serviceId = formData.get("serviceId") as string;
+    const title = formData.get("title") as string;
+    const visibility = (formData.get("visibility") as "INTERNAL" | "CLIENT_VISIBLE" | "SUPPLIER_VISIBLE") || "INTERNAL";
+
+    if (mode === "upload") {
+      const file = formData.get("file") as File;
+      if (!file || file.size === 0) {
+        return { error: "Selecione um arquivo para upload" };
+      }
+
+      const document = await uploadDocument(tenantId, {
+        serviceId,
+        proposalId,
+        title,
+        visibility,
+        file,
+      });
+
+      revalidatePath("/documents");
+      revalidatePath(`/services/${document.serviceId}`);
+      if (proposalId) revalidatePath(`/proposals/${proposalId}`);
+      return { redirectUrl: `/documents/${document.id}` };
+    }
+
+    const url = formData.get("url") as string;
+    if (!url) {
+      return { error: "Informe a URL do arquivo" };
+    }
 
     const document = await createDocument(tenantId, {
-      serviceId: formData.get("serviceId") as string,
+      serviceId,
       proposalId,
-      title: formData.get("title") as string,
-      url: formData.get("url") as string,
-      visibility: (formData.get("visibility") as "INTERNAL" | "CLIENT_VISIBLE" | "SUPPLIER_VISIBLE") || undefined,
+      title,
+      url,
+      visibility,
       mimeType: (formData.get("mimeType") as string) || undefined,
     });
 

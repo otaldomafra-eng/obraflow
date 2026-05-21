@@ -88,19 +88,24 @@ export default async function PortalPage({
           <div className="rounded-xl border border-zinc-200 bg-white p-6">
             <h2 className="mb-3 text-sm font-semibold text-zinc-900">Documentos</h2>
             <ul className="divide-y divide-zinc-100">
-              {service.documents.map((doc) => (
-                <li key={doc.id} className="py-2 first:pt-0 last:pb-0">
-                  <a
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between text-sm text-blue-600 hover:text-blue-500"
-                  >
-                    <span className="truncate">{doc.title}</span>
-                    <span className="ml-2 shrink-0">Abrir →</span>
-                  </a>
-                </li>
-              ))}
+              {service.documents.map((doc) => {
+                const docUrl = doc.storagePath
+                  ? `/api/documents/${doc.id}/portal-download?token=${token}`
+                  : doc.url;
+                return (
+                  <li key={doc.id} className="py-2 first:pt-0 last:pb-0">
+                    <a
+                      href={docUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between text-sm text-blue-600 hover:text-blue-500"
+                    >
+                      <span className="truncate">{doc.title}</span>
+                      <span className="ml-2 shrink-0">Abrir →</span>
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface ServiceOption {
@@ -15,7 +15,7 @@ interface ProposalOption {
 }
 
 interface DocumentFormProps {
-  action: (formData: FormData) => Promise<{ redirectUrl?: string } | void>;
+  action: (formData: FormData) => Promise<{ redirectUrl?: string; error?: string } | void>;
   services: ServiceOption[];
   proposals?: ProposalOption[];
   document?: {
@@ -25,6 +25,8 @@ interface DocumentFormProps {
     url: string;
     visibility: string;
     mimeType: string | null;
+    storagePath?: string | null;
+    fileName?: string | null;
   };
 }
 
@@ -34,12 +36,15 @@ export function DocumentForm({ action, services, proposals, document: doc }: Doc
   const preselectedServiceId = searchParams.get("serviceId");
   const preselectedProposalId = searchParams.get("proposalId");
 
+  const [mode, setMode] = useState<"upload" | "url">(doc?.storagePath ? "upload" : "url");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
   const [state, formAction, isPending] = useActionState(
     async (_prev: unknown, formData: FormData) => {
       const result = await action(formData);
       return result ?? null;
     },
-    null as { redirectUrl?: string } | null,
+    null as { redirectUrl?: string; error?: string } | null,
   );
 
   useEffect(() => {
@@ -53,6 +58,25 @@ export function DocumentForm({ action, services, proposals, document: doc }: Doc
 
   return (
     <form action={formAction} className="space-y-5">
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setMode("url")}
+          className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${mode === "url" ? "bg-zinc-900 text-white border-zinc-900" : "border-zinc-200 text-zinc-600 hover:bg-zinc-50"}`}
+        >
+          URL externa
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("upload")}
+          className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${mode === "upload" ? "bg-zinc-900 text-white border-zinc-900" : "border-zinc-200 text-zinc-600 hover:bg-zinc-50"}`}
+        >
+          Upload de arquivo
+        </button>
+      </div>
+
+      <input type="hidden" name="mode" value={mode} />
+
       <Field label="Serviço" id="serviceId">
         {hasFixedService ? (
           <>
@@ -114,17 +138,36 @@ export function DocumentForm({ action, services, proposals, document: doc }: Doc
         />
       </Field>
 
-      <Field label="URL do Arquivo *" id="url">
-        <input
-          id="url"
-          name="url"
-          type="url"
-          required
-          defaultValue={doc?.url ?? ""}
-          placeholder="https://storage.example.com/documento.pdf"
-          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
-        />
-      </Field>
+      {mode === "url" ? (
+        <Field label="URL do Arquivo *" id="url">
+          <input
+            id="url"
+            name="url"
+            type="url"
+            required={mode === "url"}
+            defaultValue={doc?.url ?? ""}
+            placeholder="https://storage.example.com/documento.pdf"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+          />
+        </Field>
+      ) : (
+        <Field label="Arquivo *" id="file">
+          <input
+            id="file"
+            name="file"
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg,.docx,.xlsx,.dwg"
+            onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+            className="block w-full text-sm text-zinc-900 file:mr-4 file:rounded-lg file:border-0 file:bg-zinc-900 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-800"
+          />
+          {selectedFile && (
+            <p className="mt-1 text-xs text-zinc-500">
+              Selecionado: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+            </p>
+          )}
+          <p className="mt-1 text-xs text-zinc-400">PDF, PNG, JPG, DOCX, XLSX, DWG — máx. 10MB</p>
+        </Field>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Visibilidade" id="visibility">
@@ -139,16 +182,24 @@ export function DocumentForm({ action, services, proposals, document: doc }: Doc
             <option value="SUPPLIER_VISIBLE">Visível ao Fornecedor</option>
           </select>
         </Field>
-        <Field label="Tipo (opcional)" id="mimeType">
-          <input
-            id="mimeType"
-            name="mimeType"
-            defaultValue={doc?.mimeType ?? ""}
-            placeholder="Ex: application/pdf"
-            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
-          />
-        </Field>
+        {mode === "url" && (
+          <Field label="Tipo (opcional)" id="mimeType">
+            <input
+              id="mimeType"
+              name="mimeType"
+              defaultValue={doc?.mimeType ?? ""}
+              placeholder="Ex: application/pdf"
+              className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+            />
+          </Field>
+        )}
       </div>
+
+      {state?.error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {state.error}
+        </div>
+      )}
 
       <button
         type="submit"

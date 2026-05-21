@@ -452,6 +452,10 @@ model Document {
   url         String
   visibility  DocumentVisibility @default(INTERNAL)
   mimeType    String?
+  storagePath String?
+  fileName    String?
+  fileSize    Int?
+  uploadedAt  DateTime?
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   tenant      Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)

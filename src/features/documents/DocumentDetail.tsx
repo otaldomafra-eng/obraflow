@@ -13,7 +13,19 @@ function formatDate(date: Date | string | null) {
   return new Intl.DateTimeFormat("pt-BR").format(d);
 }
 
+function formatFileSize(bytes: number | null): string {
+  if (!bytes) return "—";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export function DocumentDetail({ document: doc }: Props) {
+  const isInternalUpload = !!doc.storagePath;
+  const downloadUrl = isInternalUpload ? `/api/documents/${doc.id}/download` : doc.url;
+  const isPdf = doc.mimeType === "application/pdf";
+  const isImage = doc.mimeType?.startsWith("image/");
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -22,6 +34,28 @@ export function DocumentDetail({ document: doc }: Props) {
           <DocumentVisibilityBadge visibility={doc.visibility} />
         </div>
       </div>
+
+      {isInternalUpload && isPdf && (
+        <div className="rounded-xl border border-zinc-200 bg-white p-6">
+          <h2 className="mb-4 text-base font-semibold">Preview</h2>
+          <iframe
+            src={downloadUrl}
+            className="w-full h-96 border rounded-lg"
+            title={doc.title}
+          />
+        </div>
+      )}
+
+      {isInternalUpload && isImage && (
+        <div className="rounded-xl border border-zinc-200 bg-white p-6">
+          <h2 className="mb-4 text-base font-semibold">Preview</h2>
+          <img
+            src={downloadUrl}
+            alt={doc.title}
+            className="max-w-full rounded-lg border"
+          />
+        </div>
+      )}
 
       <div className="rounded-xl border border-zinc-200 bg-white p-6">
         <h2 className="mb-4 text-base font-semibold">Informações</h2>
@@ -50,19 +84,32 @@ export function DocumentDetail({ document: doc }: Props) {
               </dd>
             </div>
           )}
-          <div className="flex items-center justify-between py-3">
-            <dt className="text-sm font-medium text-zinc-500">URL</dt>
-            <dd className="text-sm text-zinc-900">
-              <a
-                href={doc.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-500 transition-colors break-all"
-              >
-                {doc.url}
-              </a>
-            </dd>
-          </div>
+          {isInternalUpload ? (
+            <div className="flex items-center justify-between py-3">
+              <dt className="text-sm font-medium text-zinc-500">Arquivo</dt>
+              <dd className="text-sm text-zinc-900">{doc.fileName ?? "—"}</dd>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between py-3">
+              <dt className="text-sm font-medium text-zinc-500">URL</dt>
+              <dd className="text-sm text-zinc-900">
+                <a
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-500 transition-colors break-all"
+                >
+                  {doc.url}
+                </a>
+              </dd>
+            </div>
+          )}
+          {doc.fileSize != null && (
+            <div className="flex items-center justify-between py-3">
+              <dt className="text-sm font-medium text-zinc-500">Tamanho</dt>
+              <dd className="text-sm text-zinc-900 tabular-nums">{formatFileSize(doc.fileSize)}</dd>
+            </div>
+          )}
           <div className="flex items-center justify-between py-3">
             <dt className="text-sm font-medium text-zinc-500">Visibilidade</dt>
             <dd className="text-sm">
@@ -73,6 +120,12 @@ export function DocumentDetail({ document: doc }: Props) {
             <dt className="text-sm font-medium text-zinc-500">Tipo</dt>
             <dd className="text-sm text-zinc-900">{doc.mimeType ?? "—"}</dd>
           </div>
+          {doc.uploadedAt && (
+            <div className="flex items-center justify-between py-3">
+              <dt className="text-sm font-medium text-zinc-500">Enviado em</dt>
+              <dd className="text-sm text-zinc-900 tabular-nums">{formatDate(doc.uploadedAt)}</dd>
+            </div>
+          )}
           <div className="flex items-center justify-between py-3">
             <dt className="text-sm font-medium text-zinc-500">Criado em</dt>
             <dd className="text-sm text-zinc-900 tabular-nums">{formatDate(doc.createdAt)}</dd>
@@ -93,12 +146,12 @@ export function DocumentDetail({ document: doc }: Props) {
         </Link>
         <div className="flex items-center gap-3">
           <a
-            href={doc.url}
+            href={downloadUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-lg bg-zinc-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 transition-colors"
           >
-            Abrir Arquivo →
+            {isInternalUpload ? "Baixar Arquivo →" : "Abrir Arquivo →"}
           </a>
           <Link
             href={`/documents/${doc.id}/edit`}

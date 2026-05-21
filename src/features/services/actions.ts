@@ -354,7 +354,7 @@ export type PortalServiceData = {
   status: string;
   dueDate: Date | null;
   client: { name: string };
-  documents: { id: string; title: string; url: string; mimeType: string | null }[];
+  documents: { id: string; title: string; url: string; mimeType: string | null; storagePath: string | null }[];
   tasks: { title: string; completedAt: Date | null }[];
 };
 
@@ -372,7 +372,7 @@ export async function getPortalService(
       client: { select: { name: true } },
       documents: {
         where: { visibility: "CLIENT_VISIBLE" },
-        select: { id: true, title: true, url: true, mimeType: true },
+        select: { id: true, title: true, url: true, mimeType: true, storagePath: true },
         orderBy: { createdAt: "desc" },
       },
       tasks: {

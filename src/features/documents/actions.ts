@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 import { prisma } from "@/server/db/client";
+import { uploadFile } from "@/server/storage/supabase";
+import { validateFile, sanitizeFileName, buildStoragePath } from "@/server/storage/validation";
 
 const VISIBILITIES = ["INTERNAL", "CLIENT_VISIBLE", "SUPPLIER_VISIBLE"] as const;
 
@@ -144,5 +146,64 @@ export async function getDocument(tenantId: string, documentId: string) {
   return prisma.document.findFirst({
     where: { tenantId, id: documentId },
     include: documentInclude,
+  });
+}
+
+export interface UploadDocumentInput {
+  serviceId: string;
+  proposalId?: string;
+  title: string;
+  visibility: "INTERNAL" | "CLIENT_VISIBLE" | "SUPPLIER_VISIBLE";
+  file: File;
+}
+
+export async function uploadDocument(tenantId: string, input: UploadDocumentInput) {
+  const validation = validateFile({
+    name: input.file.name,
+    size: input.file.size,
+    type: input.file.type,
+  });
+  if (!validation.ok) throw new Error(validation.error);
+
+  await assertServiceBelongsToTenant(tenantId, input.serviceId);
+
+  if (input.proposalId) {
+    await assertProposalBelongsToService(tenantId, input.serviceId, input.proposalId);
+  }
+
+  const safeName = sanitizeFileName(input.file.name);
+
+  const document = await prisma.document.create({
+    data: {
+      tenantId,
+      serviceId: input.serviceId,
+      proposalId: input.proposalId ?? null,
+      title: input.title,
+      url: "/api/documents/PENDING/download",
+      visibility: input.visibility,
+      mimeType: input.file.type,
+    },
+  });
+
+  const storagePath = buildStoragePath(tenantId, input.serviceId, document.id, safeName);
+
+  try {
+    await uploadFile(storagePath, input.file);
+  } catch (uploadError) {
+    await prisma.document.delete({
+      where: { tenantId_id: { tenantId, id: document.id } },
+    });
+    throw new Error(`Upload failed: ${uploadError instanceof Error ? uploadError.message : "unknown error"}`);
+  }
+
+  return prisma.document.update({
+    where: { tenantId_id: { tenantId, id: document.id } },
+    data: {
+      storagePath,
+      fileName: safeName,
+      fileSize: input.file.size,
+      uploadedAt: new Date(),
+      url: `/api/documents/${document.id}/download`,
+    },
   });
 }
