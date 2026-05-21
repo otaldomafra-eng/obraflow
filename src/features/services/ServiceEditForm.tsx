@@ -12,6 +12,10 @@ interface ServiceEditFormProps {
     description: string;
     startDate: string;
     dueDate: string;
+    artNumber: string;
+    technicalLead: string;
+    councilRegNumber: string;
+    internalCode: string;
   };
 }
 
@@ -104,6 +108,51 @@ export function ServiceEditForm({ action, serviceId, defaultValues }: ServiceEdi
             name="dueDate"
             type="date"
             defaultValue={defaultValues.dueDate}
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+          />
+        </Field>
+      </div>
+
+      <hr className="border-zinc-200" />
+      <h3 className="text-base font-semibold text-zinc-900">Dados Técnicos</h3>
+
+      <Field label="Código Interno" id="internalCode">
+        <input
+          id="internalCode"
+          name="internalCode"
+          defaultValue={defaultValues.internalCode}
+          placeholder="Ex: SRV-2026-001"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+        />
+      </Field>
+
+      <Field label="ART/RRT" id="artNumber">
+        <input
+          id="artNumber"
+          name="artNumber"
+          defaultValue={defaultValues.artNumber}
+          placeholder="Ex: 123456789"
+          className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+        />
+      </Field>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Field label="Responsável Técnico" id="technicalLead">
+          <input
+            id="technicalLead"
+            name="technicalLead"
+            defaultValue={defaultValues.technicalLead}
+            placeholder="Nome do profissional"
+            className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+          />
+        </Field>
+
+        <Field label="CREA/CAU" id="councilRegNumber">
+          <input
+            id="councilRegNumber"
+            name="councilRegNumber"
+            defaultValue={defaultValues.councilRegNumber}
+            placeholder="Ex: CREA-SP 12345"
             className="block w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all duration-150 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
           />
         </Field>

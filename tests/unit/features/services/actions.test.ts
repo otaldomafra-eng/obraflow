@@ -22,7 +22,17 @@ vi.mock("@/server/db/client", () => ({
   prisma: prismaMock,
 }));
 
-import { createService, updateService } from "@/features/services/actions";
+vi.mock("crypto", () => ({
+  randomUUID: vi.fn(() => "test-uuid-123"),
+}));
+
+import {
+  createService,
+  updateService,
+  generatePortalToken,
+  disablePortal,
+  getPortalService,
+} from "@/features/services/actions";
 
 describe("service actions ownership validation", () => {
   beforeEach(() => {
@@ -210,40 +220,245 @@ describe("service actions ownership validation", () => {
     expect(callData).not.toHaveProperty("startDate");
     expect(callData).not.toHaveProperty("dueDate");
     expect(callData).not.toHaveProperty("description");
+    expect(callData).not.toHaveProperty("artNumber");
+    expect(callData).not.toHaveProperty("technicalLead");
+    expect(callData).not.toHaveProperty("councilRegNumber");
+    expect(callData).not.toHaveProperty("internalCode");
   });
 
-  it("updateService with valid clientId and propertyId change validates both", async () => {
-    prismaMock.client.findUnique.mockResolvedValue({ id: "client-3" });
-    prismaMock.property.findUnique.mockResolvedValue({ id: "property-3" });
+  it("createService persists technical fields", async () => {
+    prismaMock.client.findUnique.mockResolvedValue({ id: "client-1" });
+    prismaMock.service.create.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      title: "Serviço Técnico",
+      type: "TECHNICAL_PROJECT",
+      artNumber: "ART-123",
+      technicalLead: "Eng. Silva",
+      councilRegNumber: "CREA-SP 12345",
+      internalCode: "SRV-001",
+    });
+
+    const result = await createService("tenant-1", {
+      clientId: "client-1",
+      title: "Serviço Técnico",
+      type: "TECHNICAL_PROJECT",
+      artNumber: "ART-123",
+      technicalLead: "Eng. Silva",
+      councilRegNumber: "CREA-SP 12345",
+      internalCode: "SRV-001",
+    });
+
+    expect(result.artNumber).toBe("ART-123");
+    expect(result.technicalLead).toBe("Eng. Silva");
+    expect(result.councilRegNumber).toBe("CREA-SP 12345");
+    expect(result.internalCode).toBe("SRV-001");
+    expect(prismaMock.service.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          artNumber: "ART-123",
+          technicalLead: "Eng. Silva",
+          councilRegNumber: "CREA-SP 12345",
+          internalCode: "SRV-001",
+        }),
+      }),
+    );
+  });
+
+  it("createService allows omitting all technical fields", async () => {
+    prismaMock.client.findUnique.mockResolvedValue({ id: "client-1" });
+    prismaMock.service.create.mockResolvedValue({
+      id: "service-2",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      title: "Serviço Simples",
+      type: "CONSULTING",
+    });
+
+    const result = await createService("tenant-1", {
+      clientId: "client-1",
+      title: "Serviço Simples",
+      type: "CONSULTING",
+    });
+
+    expect(result.title).toBe("Serviço Simples");
+    expect(prismaMock.service.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          artNumber: null,
+          technicalLead: null,
+          councilRegNumber: null,
+          internalCode: null,
+        }),
+      }),
+    );
+  });
+
+  it("updateService persists technical fields", async () => {
     prismaMock.service.update.mockResolvedValue({
       id: "service-1",
       tenantId: "tenant-1",
-      clientId: "client-3",
-      propertyId: "property-3",
-      title: "Reassignado",
+      clientId: "client-1",
+      title: "Atualizado",
+      artNumber: "ART-456",
+      technicalLead: "Eng. Souza",
     });
 
     const result = await updateService("tenant-1", "service-1", {
-      clientId: "client-3",
-      propertyId: "property-3",
-      title: "Reassignado",
+      title: "Atualizado",
+      artNumber: "ART-456",
+      technicalLead: "Eng. Souza",
     });
 
-    expect(result.clientId).toBe("client-3");
-    expect(result.propertyId).toBe("property-3");
-    expect(prismaMock.client.findUnique).toHaveBeenCalledWith({
-      where: { tenantId_id: { tenantId: "tenant-1", id: "client-3" } },
-      select: { id: true },
+    expect(result.artNumber).toBe("ART-456");
+    expect(result.technicalLead).toBe("Eng. Souza");
+    expect(prismaMock.service.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          artNumber: "ART-456",
+          technicalLead: "Eng. Souza",
+        }),
+      }),
+    );
+  });
+
+  it("updateService clears technical fields when null is passed", async () => {
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      title: "Limpo",
+      artNumber: null,
+      internalCode: null,
     });
-    expect(prismaMock.property.findUnique).toHaveBeenCalledWith({
-      where: {
-        tenantId_clientId_id: {
-          tenantId: "tenant-1",
-          clientId: "client-3",
-          id: "property-3",
-        },
-      },
-      select: { id: true },
+
+    const result = await updateService("tenant-1", "service-1", {
+      title: "Limpo",
+      artNumber: null,
+      internalCode: null,
     });
+
+    expect(result.artNumber).toBeNull();
+    expect(result.internalCode).toBeNull();
+    expect(prismaMock.service.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ artNumber: null, internalCode: null }),
+      }),
+    );
+  });
+
+  it("updateService skips technical fields when not in input", async () => {
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      tenantId: "tenant-1",
+      clientId: "client-1",
+      title: "Só Título",
+    });
+
+    await updateService("tenant-1", "service-1", {
+      title: "Só Título",
+    });
+
+    const callData = prismaMock.service.update.mock.calls[0][0].data;
+    expect(callData).not.toHaveProperty("artNumber");
+    expect(callData).not.toHaveProperty("technicalLead");
+    expect(callData).not.toHaveProperty("councilRegNumber");
+    expect(callData).not.toHaveProperty("internalCode");
+  });
+});
+
+describe("portal actions", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("generatePortalToken creates token and returns URL", async () => {
+    prismaMock.service.findUnique
+      .mockResolvedValueOnce({ id: "service-1" })
+      .mockResolvedValueOnce(null);
+
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      portalToken: "test-uuid-123",
+      portalEnabled: true,
+    });
+
+    const url = await generatePortalToken("tenant-1", "service-1");
+
+    expect(url).toBe("http://localhost:3000/portal/test-uuid-123");
+    expect(prismaMock.service.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { tenantId_id: { tenantId: "tenant-1", id: "service-1" } },
+        data: { portalToken: "test-uuid-123", portalEnabled: true },
+      }),
+    );
+  });
+
+  it("generatePortalToken rejects when service does not belong to tenant", async () => {
+    prismaMock.service.findUnique.mockResolvedValue(null);
+
+    await expect(
+      generatePortalToken("tenant-1", "service-1"),
+    ).rejects.toThrow("does not belong to tenant");
+  });
+
+  it("disablePortal sets enabled false and clears token", async () => {
+    prismaMock.service.findUnique.mockResolvedValue({ id: "service-1" });
+    prismaMock.service.update.mockResolvedValue({
+      id: "service-1",
+      portalEnabled: false,
+      portalToken: null,
+    });
+
+    await disablePortal("tenant-1", "service-1");
+
+    expect(prismaMock.service.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { tenantId_id: { tenantId: "tenant-1", id: "service-1" } },
+        data: { portalEnabled: false, portalToken: null },
+      }),
+    );
+  });
+
+  it("disablePortal rejects when service does not belong to tenant", async () => {
+    prismaMock.service.findUnique.mockResolvedValue(null);
+
+    await expect(
+      disablePortal("tenant-1", "service-1"),
+    ).rejects.toThrow("does not belong to tenant");
+  });
+
+  it("getPortalService returns null when portal is disabled", async () => {
+    prismaMock.service.findUnique.mockResolvedValue(null);
+
+    const result = await getPortalService("invalid-token");
+
+    expect(result).toBeNull();
+  });
+
+  it("getPortalService filters documents to CLIENT_VISIBLE only", async () => {
+    const mockService = {
+      id: "service-1",
+      title: "Portal Service",
+      status: "PRODUCTION",
+      dueDate: null,
+      portalEnabled: true,
+      client: { name: "Cliente Portal" },
+      documents: [
+        { id: "doc-1", title: "Documento Visível", url: "https://exemplo.com/doc1", mimeType: "application/pdf" },
+      ],
+      tasks: [],
+    };
+
+    prismaMock.service.findUnique.mockResolvedValue(mockService);
+
+    const result = await getPortalService("valid-token");
+
+    expect(result).not.toBeNull();
+    expect(result!.documents).toHaveLength(1);
+    expect(result!.documents[0].title).toBe("Documento Visível");
+    expect(result!.client.name).toBe("Cliente Portal");
+    expect(result!.title).toBe("Portal Service");
   });
 });

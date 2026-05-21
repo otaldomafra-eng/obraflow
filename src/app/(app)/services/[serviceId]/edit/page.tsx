@@ -29,6 +29,10 @@ export default async function ServiceEditPage({
       description: (formData.get("description") as string) || null,
       startDate: (formData.get("startDate") as string) || null,
       dueDate: (formData.get("dueDate") as string) || null,
+      artNumber: (formData.get("artNumber") as string) || null,
+      technicalLead: (formData.get("technicalLead") as string) || null,
+      councilRegNumber: (formData.get("councilRegNumber") as string) || null,
+      internalCode: (formData.get("internalCode") as string) || null,
     });
 
     revalidatePath(`/services/${serviceId}`);
@@ -72,6 +76,10 @@ export default async function ServiceEditPage({
             description: service.description ?? "",
             startDate: formatDate(service.startDate),
             dueDate: formatDate(service.dueDate),
+            artNumber: service.artNumber ?? "",
+            technicalLead: service.technicalLead ?? "",
+            councilRegNumber: service.councilRegNumber ?? "",
+            internalCode: service.internalCode ?? "",
           }}
         />
       </div>

@@ -44,6 +44,10 @@ export default async function NewServicePage(props: {
       description: (formData.get("description") as string) || undefined,
       startDate: (formData.get("startDate") as string) || undefined,
       dueDate: (formData.get("dueDate") as string) || undefined,
+      artNumber: (formData.get("artNumber") as string) || undefined,
+      technicalLead: (formData.get("technicalLead") as string) || undefined,
+      councilRegNumber: (formData.get("councilRegNumber") as string) || undefined,
+      internalCode: (formData.get("internalCode") as string) || undefined,
     });
 
     revalidatePath("/services");

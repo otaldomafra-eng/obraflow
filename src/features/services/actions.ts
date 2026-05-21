@@ -35,6 +35,10 @@ export const createServiceSchema = z.object({
   description: z.string().optional(),
   startDate: z.string().optional().transform((v) => (v ? new Date(v) : null)),
   dueDate: z.string().optional().transform((v) => (v ? new Date(v) : null)),
+  artNumber: z.string().optional(),
+  technicalLead: z.string().optional(),
+  councilRegNumber: z.string().optional(),
+  internalCode: z.string().optional(),
 });
 
 export const updateServiceSchema = z.object({
@@ -54,6 +58,10 @@ export const updateServiceSchema = z.object({
     if (v === undefined) return undefined;
     return new Date(v);
   }),
+  artNumber: z.string().nullable().optional(),
+  technicalLead: z.string().nullable().optional(),
+  councilRegNumber: z.string().nullable().optional(),
+  internalCode: z.string().nullable().optional(),
 });
 
 export const listServicesSchema = z.object({
@@ -129,6 +137,10 @@ export async function createService(
       description: data.description ?? null,
       startDate: data.startDate,
       dueDate: data.dueDate,
+      artNumber: data.artNumber ?? null,
+      technicalLead: data.technicalLead ?? null,
+      councilRegNumber: data.councilRegNumber ?? null,
+      internalCode: data.internalCode ?? null,
     },
   });
 }
@@ -204,6 +216,10 @@ export async function updateService(
       }),
       ...(data.startDate !== undefined && { startDate: data.startDate }),
       ...(data.dueDate !== undefined && { dueDate: data.dueDate }),
+      ...(data.artNumber !== undefined && { artNumber: data.artNumber ?? null }),
+      ...(data.technicalLead !== undefined && { technicalLead: data.technicalLead ?? null }),
+      ...(data.councilRegNumber !== undefined && { councilRegNumber: data.councilRegNumber ?? null }),
+      ...(data.internalCode !== undefined && { internalCode: data.internalCode ?? null }),
     },
   });
 }
@@ -277,4 +293,98 @@ export async function getServiceDetail(tenantId: string, serviceId: string) {
       },
     },
   });
+}
+
+export async function generatePortalToken(tenantId: string, serviceId: string) {
+  const service = await prisma.service.findUnique({
+    where: { tenantId_id: { tenantId, id: serviceId } },
+    select: { id: true },
+  });
+
+  if (!service) {
+    throw new Error(`Service ${serviceId} does not belong to tenant ${tenantId}`);
+  }
+
+  const { randomUUID } = await import("crypto");
+  let token: string;
+  let retries = 3;
+
+  while (retries > 0) {
+    token = randomUUID();
+    const existing = await prisma.service.findUnique({
+      where: { portalToken: token },
+      select: { id: true },
+    });
+    if (!existing) break;
+    retries--;
+  }
+
+  if (retries === 0) {
+    throw new Error("Failed to generate unique portal token after retries");
+  }
+
+  await prisma.service.update({
+    where: { tenantId_id: { tenantId, id: serviceId } },
+    data: { portalToken: token!, portalEnabled: true },
+  });
+
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  return `${baseUrl}/portal/${token!}`;
+}
+
+export async function disablePortal(tenantId: string, serviceId: string) {
+  const service = await prisma.service.findUnique({
+    where: { tenantId_id: { tenantId, id: serviceId } },
+    select: { id: true },
+  });
+
+  if (!service) {
+    throw new Error(`Service ${serviceId} does not belong to tenant ${tenantId}`);
+  }
+
+  await prisma.service.update({
+    where: { tenantId_id: { tenantId, id: serviceId } },
+    data: { portalEnabled: false, portalToken: null },
+  });
+}
+
+export type PortalServiceData = {
+  id: string;
+  title: string;
+  status: string;
+  dueDate: Date | null;
+  client: { name: string };
+  documents: { id: string; title: string; url: string; mimeType: string | null }[];
+  tasks: { title: string; completedAt: Date | null }[];
+};
+
+export async function getPortalService(
+  token: string,
+): Promise<PortalServiceData | null> {
+  const service = await prisma.service.findUnique({
+    where: { portalToken: token },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      dueDate: true,
+      portalEnabled: true,
+      client: { select: { name: true } },
+      documents: {
+        where: { visibility: "CLIENT_VISIBLE" },
+        select: { id: true, title: true, url: true, mimeType: true },
+        orderBy: { createdAt: "desc" },
+      },
+      tasks: {
+        where: { status: "DELIVERED" },
+        select: { title: true, completedAt: true },
+        orderBy: { completedAt: "desc" },
+        take: 1,
+      },
+    },
+  });
+
+  if (!service || !service.portalEnabled) return null;
+
+  return service;
 }

@@ -222,6 +222,12 @@ model Service {
   messages          Message[]
   timelineEvents    TimelineEvent[]
   aiInteractions    AiInteraction[]
+  artNumber         String?
+  technicalLead     String?
+  councilRegNumber  String?
+  internalCode      String?
+  portalToken       String?       @unique
+  portalEnabled     Boolean       @default(false)
 
   @@unique([tenantId, id])
   @@unique([tenantId, clientId, id])

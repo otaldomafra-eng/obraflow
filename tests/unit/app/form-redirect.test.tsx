@@ -126,7 +126,7 @@ describe("ServiceForm redirect", () => {
 });
 
 describe("ServiceEditForm redirect", () => {
-  const defaultValues = { title: "Título", status: "NEW", description: "", startDate: "", dueDate: "" };
+  const defaultValues = { title: "Título", status: "NEW", description: "", startDate: "", dueDate: "", artNumber: "", technicalLead: "", councilRegNumber: "", internalCode: "" };
 
   it("navega para redirectUrl após submit", async () => {
     const action = vi.fn(async () => ({ redirectUrl: "/services/svc-1" }));

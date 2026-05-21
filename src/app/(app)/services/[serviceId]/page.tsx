@@ -19,6 +19,11 @@ import { listContracts } from "@/features/contracts/actions";
 import { ContractStatusBadge } from "@/features/contracts/ContractStatusBadge";
 import { listDocuments } from "@/features/documents/actions";
 import { DocumentVisibilityBadge } from "@/features/documents/DocumentVisibilityBadge";
+import {
+  generatePortalToken,
+  disablePortal,
+} from "@/features/services/actions";
+import { PortalClient } from "@/features/services/PortalClient";
 
 export default async function ServiceDetailPage({
   params,
@@ -62,6 +67,19 @@ export default async function ServiceDetailPage({
     "use server";
     await reorderServiceTasks(tenantId, serviceId, taskIds);
     revalidatePath(`/services/${serviceId}`);
+  }
+
+  async function handleEnablePortal(formServiceId: string) {
+    "use server";
+    const url = await generatePortalToken(tenantId, formServiceId);
+    revalidatePath(`/services/${formServiceId}`);
+    return url;
+  }
+
+  async function handleDisablePortal(formServiceId: string) {
+    "use server";
+    await disablePortal(tenantId, formServiceId);
+    revalidatePath(`/services/${formServiceId}`);
   }
 
   return (
@@ -183,7 +201,7 @@ export default async function ServiceDetailPage({
         </div>
       </div>
 
-{(service.client.email || service.client.phone) && (
+      {(service.client.email || service.client.phone) && (
          <div className="rounded-xl border border-zinc-200 bg-white p-6">
            <h2 className="mb-4 text-base font-semibold">Contato do Cliente</h2>
            <div className="space-y-2 text-sm">
@@ -202,6 +220,49 @@ export default async function ServiceDetailPage({
            </div>
          </div>
        )}
+
+      {(service.artNumber || service.technicalLead || service.councilRegNumber || service.internalCode) && (
+        <div className="rounded-xl border border-zinc-200 bg-white p-6">
+          <h2 className="mb-4 text-base font-semibold">Dados Técnicos</h2>
+          <dl className="space-y-3">
+            {service.internalCode && (
+              <div>
+                <dt className="text-sm font-medium text-zinc-500">Código Interno</dt>
+                <dd className="text-sm text-zinc-900">{service.internalCode}</dd>
+              </div>
+            )}
+            {service.artNumber && (
+              <div>
+                <dt className="text-sm font-medium text-zinc-500">ART/RRT</dt>
+                <dd className="text-sm text-zinc-900">{service.artNumber}</dd>
+              </div>
+            )}
+            {service.technicalLead && (
+              <div>
+                <dt className="text-sm font-medium text-zinc-500">Responsável Técnico</dt>
+                <dd className="text-sm text-zinc-900">{service.technicalLead}</dd>
+              </div>
+            )}
+            {service.councilRegNumber && (
+              <div>
+                <dt className="text-sm font-medium text-zinc-500">CREA/CAU</dt>
+                <dd className="text-sm text-zinc-900">{service.councilRegNumber}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
+
+      <div className="rounded-xl border border-zinc-200 bg-white p-6">
+        <h2 className="mb-4 text-base font-semibold">Portal do Cliente</h2>
+        <PortalClient
+          serviceId={service.id}
+          portalEnabled={service.portalEnabled}
+          portalToken={service.portalToken}
+          onEnable={handleEnablePortal}
+          onDisable={handleDisablePortal}
+        />
+      </div>
 
       <div className="rounded-xl border border-zinc-200 bg-white">
           <div className="flex items-center justify-between border-b border-zinc-100 px-6 py-4">
