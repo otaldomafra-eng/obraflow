@@ -9,10 +9,11 @@ import {
   FolderOpen,
   HardHat,
   Home,
+  KeyRound,
   Layers,
   LayoutDashboard,
   MessageSquareShare,
-  Settings,
+  Shield,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -40,7 +41,8 @@ const navEntries: NavEntry[] = [
   { label: "Documentos", href: "/documents", icon: FileText },
   { label: "Portal", href: "/portal-admin", icon: MessageSquareShare },
   { label: "IA", href: "/ai", icon: BrainCircuit },
-  { label: "Configurações", href: "/settings", icon: Settings },
+  { label: "Usuários", href: "/settings/users", icon: Shield },
+  { label: "Segurança", href: "/settings/security", icon: KeyRound },
 ];
 
 const navGroups = [

@@ -27,7 +27,8 @@ test("admin signs in and sees app shell navigation", async ({ page }) => {
     "Documentos",
     "Portal",
     "IA",
-    "Configurações",
+    "Usuários",
+    "Segurança",
   ];
 
   for (const entry of navEntries) {
