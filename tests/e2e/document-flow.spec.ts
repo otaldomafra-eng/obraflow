@@ -166,6 +166,11 @@ test.describe("fluxo de documentos", () => {
   });
 
   test("cria documento com upload de PDF e visualiza no detalhe", async ({ page }) => {
+    test.skip(
+      !(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL) ||
+      !process.env.SUPABASE_SERVICE_ROLE_KEY,
+      "requires Supabase Storage envs (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)"
+    );
     test.setTimeout(90000);
 
     // Login
